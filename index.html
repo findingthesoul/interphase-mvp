@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Interphase" />
+<meta name="theme-color" content="#FFFFFF" />
+<title>Interphase — Nucleus</title>
+<link rel="icon" type="image/svg+xml" href="https://findingthesoul.github.io/interphase/favicon.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --paper-soft: #F5F5F5;
+    --form-bg: #D3D3D3;
+    --ink: #231F20;
+    --ink-soft: #3A3532;
+    --ink-mute: rgba(35,31,32,.58);
+    --ink-faint: rgba(35,31,32,.34);
+    --rule: rgba(35,31,32,.14);
+    --rule-soft: rgba(35,31,32,.08);
+    --klein: #002FA7;
+    --klein-soft: rgba(0,47,167,.08);
+
+    --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior: none;
+    height: 100%;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body { overflow: hidden; }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    position: relative;
+    background: var(--paper);
+  }
+
+  /* ---------- Nav (mirrors .site-nav) ---------- */
+  header.nucleus-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 22px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    flex-shrink: 0;
+  }
+  .brand-wordmark { height: 30px; width: auto; display: block; }
+  .nav-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+  .nav-meta .active { color: var(--klein); }
+
+  /* ---------- Hero plate under nav ---------- */
+  .plate {
+    background: var(--form-bg);
+    padding: 20px 22px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .plate-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    font-weight: 500;
+    line-height: 1.3;
+    max-width: 60%;
+  }
+  .plate-label em { font-style: normal; color: var(--klein); }
+  .plate-mandala {
+    width: 62px; height: 62px;
+    flex-shrink: 0;
+    transform: rotate(15deg);
+    transform-origin: center;
+    animation: spin 90s linear infinite;
+    opacity: 0.92;
+  }
+  .plate-mandala img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @keyframes spin {
+    from { transform: rotate(15deg); }
+    to   { transform: rotate(375deg); }
+  }
+
+  /* ---------- Conversation ---------- */
+  main.conversation {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 40px 24px 28px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  main.conversation::-webkit-scrollbar { display: none; }
+
+  .message {
+    margin: 0 0 32px;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* AI question — echoes .tagline-block .big (display weight 200, lowercase, tight tracking) */
+  .message.ai {
+    font-family: var(--display);
+    font-weight: 200;
+    font-size: 30px;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    text-wrap: balance;
+    text-transform: lowercase;
+  }
+  .message.ai em { color: var(--klein); font-style: normal; }
+
+  .message.user {
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    background: var(--paper-soft);
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    padding: 12px 14px;
+    max-width: 82%;
+    margin-left: auto;
+    font-weight: 400;
+  }
+
+  /* Streaming cursor — Klein blue bar */
+  .message.ai .cursor {
+    display: inline-block;
+    width: 10px;
+    height: 0.85em;
+    background: var(--klein);
+    vertical-align: -2px;
+    margin-left: 4px;
+    animation: blink 0.9s steps(2, start) infinite;
+  }
+  @keyframes blink { to { visibility: hidden; } }
+
+  /* Thinking indicator */
+  .thinking {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    height: 30px;
+  }
+  .thinking .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--klein);
+    animation: pulse 1.3s ease-in-out infinite;
+  }
+  .thinking .dot:nth-child(2) { animation-delay: 0.18s; }
+  .thinking .dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.22; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
+  }
+
+  /* ---------- Input bar ---------- */
+  footer.input-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 18px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .text-input {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 13px 16px;
+    border-radius: 2px;
+    outline: none;
+    -webkit-user-select: text;
+    user-select: text;
+    min-width: 0;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .text-input:focus { border-color: var(--klein); background: var(--klein-soft); }
+  .text-input::placeholder { color: var(--ink-faint); font-style: italic; }
+
+  .icon-btn {
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    color: var(--ink);
+    padding: 0;
+  }
+  .icon-btn:active { transform: scale(0.95); }
+  .icon-btn.mic.recording {
+    background: var(--klein);
+    border-color: var(--klein);
+    color: var(--paper);
+    animation: recording-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes recording-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,47,167,0.35); }
+    50%      { box-shadow: 0 0 0 10px rgba(0,47,167,0);   }
+  }
+  .icon-btn.send { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .icon-btn.send:disabled { opacity: 0.2; cursor: default; background: var(--paper); color: var(--ink); border-color: var(--rule); }
+
+  .reset {
+    background: none;
+    border: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    cursor: pointer;
+    padding: 8px 0;
+  }
+  .reset:active { color: var(--klein); }
+
+  /* ---------- Modal (API key) ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(35,31,32,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 20;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .overlay.hidden { display: none; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 32px 26px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+  .card .card-mandala { width: 82px; height: 82px; display: block; margin: 0 auto 18px; transform: rotate(15deg); }
+  .card .card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; }
+  .card h2 {
+    font-family: var(--display);
+    font-weight: 200;
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    margin: 0 0 14px;
+    text-transform: lowercase;
+    color: var(--ink);
+  }
+  .card h2 em { color: var(--klein); font-style: normal; }
+  .card p {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink-mute);
+    margin: 0 0 18px;
+    line-height: 1.55;
+  }
+  .card input {
+    width: 100%;
+    padding: 13px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background: var(--paper);
+    outline: none;
+    color: var(--ink);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .card input:focus { border-color: var(--klein); background: var(--klein-soft); }
+  .card button {
+    margin-top: 14px;
+    width: 100%;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--klein);
+    border: 1px solid var(--klein);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .card button:active { opacity: 0.88; }
+  .card .tiny {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 14px 0 0;
+    line-height: 1.6;
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: calc(108px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 16px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    z-index: 30;
+    max-width: 82%;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 380px) {
+    .message.ai { font-size: 26px; }
+    .brand-wordmark { height: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header class="nucleus-nav">
+    <img class="brand-wordmark" src="https://findingthesoul.github.io/interphase/wordmark.svg" alt="Interphase" />
+    <button class="reset" id="reset-btn" title="new reflection">begin&nbsp;again</button>
+  </header>
+
+  <div class="plate">
+    <div class="plate-label">
+      S · <em>Interphase</em><br/>Replication
+    </div>
+    <div class="plate-mandala">
+      <img src="https://findingthesoul.github.io/interphase/mandala.png" alt="" />
+    </div>
+  </div>
+
+  <main class="conversation" id="conversation"></main>
+
+  <footer class="input-bar">
+    <button class="icon-btn mic" id="mic-btn" aria-label="hold to speak">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="3" width="6" height="12" rx="3"/>
+        <path d="M5 11a7 7 0 0 0 14 0"/>
+        <line x1="12" y1="18" x2="12" y2="22"/>
+      </svg>
+    </button>
+    <input class="text-input" id="text-input" type="text" placeholder="or write it" autocomplete="off" autocorrect="on" spellcheck="true" />
+    <button class="icon-btn send" id="send-btn" aria-label="send" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"/>
+        <polyline points="5 12 12 5 19 12"/>
+      </svg>
+    </button>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Interphase — Nucleus ---------- */
+
+const SYSTEM_PROMPT = `You are Interphase. You exist only to ask one reflective question at a time. You never give answers, advice, opinions, solutions, reassurance, or summaries.
+
+Rules — all are strict:
+1. Every reply is exactly one question. No more, no less.
+2. Questions are short. Rarely over 18 words. Often under 10.
+3. Front-load the question. The very first word of the reply is the beginning of the question itself. No preamble, no acknowledgement, no "So", "Well", "Hmm", "That sounds", "It seems", "I hear", "Thank you".
+4. Never use the word "I". Never refer to yourself.
+5. Never diagnose, label, or name what the user is feeling. Do not say "anxiety", "grief", "stress", "overwhelm", "burnout", "trauma", or any therapeutic term.
+6. Never reference therapy, coaching, mental health, wellness, mindfulness, or self-care language.
+7. Never reflect the user's words back verbatim. Do not quote them.
+8. Do not summarize what the user said.
+9. Use plain, grounded English. No metaphors unless the user uses one first.
+10. The question must be answerable — concrete enough to land on something real. Never abstract into uselessness.
+11. Every question moves one small step inward. Do not zoom out. Do not broaden. Narrow, specify, locate.
+12. If the user is silent, unsure, or says "I don't know", ask what the not-knowing is made of — do not rescue or fill the silence.
+13. Do not offer choices ("is it X or Y?") unless the contrast is the whole point.
+14. The question is the final thing. No trailing words after the question mark.
+15. No exclamations, no emoji, no headings, no lists.`;
+
+const OPENING_QUESTION = "What's the thing you've been almost saying?";
+
+const API_URL = "/api/reflect";
+
+const state = {
+  sessionId: null,
+  messages: [],
+  streaming: false,
+  voice: null,
+  firstSentenceSpoken: false,
+  spokenUpTo: 0,
+};
+
+const el = {
+  conversation: document.getElementById("conversation"),
+  micBtn:       document.getElementById("mic-btn"),
+  textInput:    document.getElementById("text-input"),
+  sendBtn:      document.getElementById("send-btn"),
+  resetBtn:     document.getElementById("reset-btn"),
+  toast:        document.getElementById("toast"),
+};
+
+/* ---------- Session ---------- */
+function ensureSession() {
+  let id = localStorage.getItem("interphase_session_id");
+  if (!id) {
+    id = (crypto.randomUUID && crypto.randomUUID()) ||
+         (Date.now() + "-" + Math.random().toString(36).slice(2));
+    localStorage.setItem("interphase_session_id", id);
+  }
+  state.sessionId = id;
+}
+
+/* ---------- Voice selection ---------- */
+function pickVoice() {
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const priorities = [
+    v => v.name === "Samantha",
+    v => v.name === "Daniel",
+    v => v.lang === "en-GB",
+    v => v.lang === "en-US",
+    v => v.default,
+  ];
+  for (const test of priorities) {
+    const hit = voices.find(test);
+    if (hit) return hit;
+  }
+  return voices[0];
+}
+function warmVoices() {
+  state.voice = pickVoice();
+  if (!state.voice) {
+    speechSynthesis.onvoiceschanged = () => { state.voice = pickVoice(); };
+  }
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg) {
+  el.toast.textContent = msg;
+  el.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.toast.classList.remove("show"), 2600);
+}
+
+/* ---------- Message rendering ---------- */
+function appendAiMessage() {
+  const div = document.createElement("div");
+  div.className = "message ai";
+  div.innerHTML = `<span class="text"></span><span class="cursor"></span>`;
+  el.conversation.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+function appendUserMessage(text) {
+  const div = document.createElement("div");
+  div.className = "message user";
+  div.textContent = text;
+  el.conversation.appendChild(div);
+  scrollToBottom();
+}
+function appendThinking() {
+  const div = document.createElement("div");
+  div.className = "message ai";
+  div.innerHTML = `<span class="thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
+  el.conversation.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+function scrollToBottom() {
+  el.conversation.scrollTo({ top: el.conversation.scrollHeight, behavior: "smooth" });
+}
+
+/* ---------- Sentence-aware speech ---------- */
+function speakSentence(sentence) {
+  if (!sentence.trim()) return;
+  const u = new SpeechSynthesisUtterance(sentence.trim());
+  u.rate = 0.88;
+  u.pitch = 0.95;
+  u.volume = 1.0;
+  if (state.voice) u.voice = state.voice;
+  speechSynthesis.speak(u);
+}
+function checkForSentences(fullText, { force = false } = {}) {
+  const re = /[.!?…](?=\s|$|["')\]])/g;
+  let lastEnd = -1, m;
+  re.lastIndex = state.spokenUpTo;
+  while ((m = re.exec(fullText)) !== null) {
+    lastEnd = m.index + 1;
+  }
+  if (lastEnd > state.spokenUpTo) {
+    const chunk = fullText.slice(state.spokenUpTo, lastEnd);
+    state.spokenUpTo = lastEnd;
+    if (!state.firstSentenceSpoken) {
+      state.firstSentenceSpoken = true;
+      setTimeout(() => speakSentence(chunk), 400); // intentional 400ms
+    } else {
+      speakSentence(chunk);
+    }
+  } else if (force) {
+    const remainder = fullText.slice(state.spokenUpTo).trim();
+    if (remainder) {
+      state.spokenUpTo = fullText.length;
+      if (!state.firstSentenceSpoken) {
+        state.firstSentenceSpoken = true;
+        setTimeout(() => speakSentence(remainder), 400);
+      } else {
+        speakSentence(remainder);
+      }
+    }
+  }
+}
+
+/* ---------- Streaming API call ---------- */
+async function askInterphase(userText) {
+  state.messages.push({ role: "user", content: userText });
+  try { speechSynthesis.cancel(); } catch (_) {}
+
+  const thinking = appendThinking();
+  let aiDiv = null;
+  let textSpan = null;
+  let fullText = "";
+  state.firstSentenceSpoken = false;
+  state.spokenUpTo = 0;
+  state.streaming = true;
+  updateSendEnabled();
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        messages: state.messages,
+      }),
+    });
+
+    if (!resp.ok) {
+      thinking.remove();
+      const errText = await resp.text().catch(() => "");
+      console.error("Interphase API error:", resp.status, errText);
+      toast("server error — try again");
+      state.streaming = false;
+      state.messages.pop();
+      updateSendEnabled();
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
+
+      for (const evt of events) {
+        const lines = evt.split("\n");
+        let dataLine = null;
+        for (const l of lines) if (l.startsWith("data: ")) dataLine = l.slice(6);
+        if (!dataLine) continue;
+        if (dataLine === "[DONE]") continue;
+        let payload;
+        try { payload = JSON.parse(dataLine); } catch { continue; }
+
+        if (payload.type === "content_block_delta" &&
+            payload.delta && payload.delta.type === "text_delta") {
+          const tok = payload.delta.text;
+          if (!aiDiv) {
+            thinking.remove();
+            aiDiv = appendAiMessage();
+            textSpan = aiDiv.querySelector(".text");
+          }
+          fullText += tok;
+          textSpan.textContent = fullText;
+          scrollToBottom();
+          checkForSentences(fullText);
+        } else if (payload.type === "message_stop") {
+          checkForSentences(fullText, { force: true });
+        }
+      }
+    }
+
+    if (aiDiv) {
+      const cursor = aiDiv.querySelector(".cursor");
+      if (cursor) cursor.remove();
+    }
+    checkForSentences(fullText, { force: true });
+
+    if (fullText.trim()) {
+      state.messages.push({ role: "assistant", content: fullText.trim() });
+    } else {
+      state.messages.pop();
+      if (thinking.isConnected) thinking.remove();
+    }
+  } catch (err) {
+    console.error(err);
+    if (thinking.isConnected) thinking.remove();
+    toast("network interrupted");
+    state.messages.pop();
+  } finally {
+    state.streaming = false;
+    updateSendEnabled();
+  }
+}
+
+/* ---------- Input handling ---------- */
+function submit(text) {
+  const t = (text || "").trim();
+  if (!t || state.streaming) return;
+  appendUserMessage(t);
+  el.textInput.value = "";
+  updateSendEnabled();
+  askInterphase(t);
+}
+el.sendBtn.addEventListener("click", () => submit(el.textInput.value));
+el.textInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); submit(el.textInput.value); }
+});
+el.textInput.addEventListener("input", updateSendEnabled);
+function updateSendEnabled() {
+  el.sendBtn.disabled = !el.textInput.value.trim() || state.streaming;
+}
+
+/* ---------- Speech recognition (hold to speak) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let recognizing = false;
+let recognizedText = "";
+
+function setupRecognition() {
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = "en-US";
+  r.interimResults = true;
+  r.continuous = true;
+  r.onresult = (e) => {
+    let interim = "", finalTxt = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalTxt += t; else interim += t;
+    }
+    recognizedText = (recognizedText + finalTxt).trim();
+    el.textInput.value = (recognizedText + " " + interim).trim();
+    updateSendEnabled();
+  };
+  r.onerror = (e) => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      toast("microphone permission needed");
+    }
+    stopRecognition(false);
+  };
+  r.onend = () => {
+    if (recognizing) {
+      recognizing = false;
+      el.micBtn.classList.remove("recording");
+      const finalText = recognizedText.trim();
+      recognizedText = "";
+      if (finalText) submit(finalText);
+    }
+  };
+  return r;
+}
+function startRecognition() {
+  if (!recognition) recognition = setupRecognition();
+  if (!recognition) {
+    toast("speech input unavailable — type instead");
+    el.textInput.focus();
+    return;
+  }
+  if (recognizing || state.streaming) return;
+  try {
+    speechSynthesis.cancel();
+    recognizedText = "";
+    el.textInput.value = "";
+    recognition.start();
+    recognizing = true;
+    el.micBtn.classList.add("recording");
+  } catch (err) { console.error(err); }
+}
+function stopRecognition(andSubmit = true) {
+  if (!recognition || !recognizing) return;
+  try { recognition.stop(); } catch (_) {}
+  if (!andSubmit) {
+    recognizing = false;
+    el.micBtn.classList.remove("recording");
+    recognizedText = "";
+    el.textInput.value = "";
+  }
+}
+el.micBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); startRecognition(); });
+el.micBtn.addEventListener("pointerup",    (e) => { e.preventDefault(); stopRecognition(true); });
+el.micBtn.addEventListener("pointerleave", () => { if (recognizing) stopRecognition(true); });
+el.micBtn.addEventListener("pointercancel",() => { if (recognizing) stopRecognition(false); });
+
+/* ---------- Reset ---------- */
+el.resetBtn.addEventListener("click", () => {
+  if (state.streaming) return;
+  try { speechSynthesis.cancel(); } catch(_) {}
+  state.messages = [];
+  el.conversation.innerHTML = "";
+  seedOpening();
+});
+
+/* ---------- Bootstrap ---------- */
+function seedOpening() {
+  const div = document.createElement("div");
+  div.className = "message ai";
+  div.innerHTML = `<span class="text"></span>`;
+  el.conversation.appendChild(div);
+  const span = div.querySelector(".text");
+  const text = OPENING_QUESTION;
+  let i = 0;
+  const tick = () => {
+    span.textContent = text.slice(0, ++i);
+    if (i < text.length) setTimeout(tick, 28);
+  };
+  setTimeout(tick, 400);
+}
+function bootstrap() {
+  warmVoices();
+  seedOpening();
+  // iOS: unlock speech synthesis on first gesture
+  const unlock = () => {
+    try {
+      const u = new SpeechSynthesisUtterance("");
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    } catch(_) {}
+    document.removeEventListener("pointerdown", unlock);
+  };
+  document.addEventListener("pointerdown", unlock, { once: true });
+}
+
+/* Init */
+if (speechSynthesis.getVoices().length === 0) {
+  speechSynthesis.onvoiceschanged = warmVoices;
+}
+ensureSession();
+bootstrap();
+</script>
+</body>
+</html>
