@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Interphase" />
-<meta name="theme-color" content="#FFFFFF" />
+<meta name="theme-color" content="#F6F6F7" />
 <title>Interphase</title>
 <link rel="icon" type="image/svg+xml" href="https://findingthesoul.github.io/interphase/favicon.svg" />
 
@@ -16,6 +16,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=JetBrains+Mono:wght@400;500&display=swap" />
 
 <style>
+  /* Providence Sans — the display face from the pitch deck */
+  @font-face {
+    font-family: "Providence Sans";
+    src: url("https://findingthesoul.github.io/interphase/fonts/ProvidenceSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     --paper: #FFFFFF;
     --paper-soft: #F6F6F7;
@@ -31,9 +40,10 @@
     --klein-soft-10: rgba(0,47,167,.10);
     --klein-soft-05: rgba(0,47,167,.05);
 
-    --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    --sans: -apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --serif:   "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --display: "Providence Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --sans:    -apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -67,8 +77,8 @@
   }
 
   /* ========================================================
-     SCREEN A — ENTRY (wordmark · mandala · SIGN IN)
-     ========================================================  */
+     SCREEN A — ENTRY (wordmark · mandala · REFLECT)
+     ======================================================== */
   .entry {
     position: absolute;
     inset: 0;
@@ -98,36 +108,39 @@
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
   }
-  .entry-signin {
+  .entry-reflect {
     appearance: none;
     background: none;
     border: none;
     cursor: pointer;
     padding: 20px 32px;
-    font-family: var(--serif);
+    font-family: var(--display);
     font-weight: 400;
-    font-size: 22px;
-    letter-spacing: 0.22em;
+    font-size: 26px;
+    letter-spacing: 0.02em;
     color: var(--ink);
     text-transform: uppercase;
     transition: color 0.2s ease, transform 0.1s ease;
   }
-  .entry-signin:active { transform: scale(0.97); color: var(--klein); }
+  .entry-reflect:active { transform: scale(0.97); color: var(--klein); }
 
   /* ========================================================
-     SCREEN B — NUCLEUS (orb · conversation)
-     ========================================================  */
+     SCREEN B — NUCLEUS
+     Two states driven by body.chat-open:
+       - closed: orb centred, chevron (∧) at bottom to open
+       - open:   orb top, rule, chevron (∨) below, chat panel
+     ======================================================== */
   .nucleus {
     display: flex;
     flex-direction: column;
     height: 100%;
     opacity: 0;
-    transition: opacity 0.8s ease 0.3s;
+    transition: opacity 0.8s ease 0.2s;
     pointer-events: none;
   }
   .nucleus.revealed { opacity: 1; pointer-events: auto; }
 
-  /* Top bar — just the asterisk */
+  /* ---- Top bar ---- */
   .top-bar {
     display: flex;
     align-items: center;
@@ -140,7 +153,7 @@
     border: none;
     cursor: pointer;
     font-family: var(--serif);
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 300;
     color: var(--ink);
     padding: 8px 10px;
@@ -149,28 +162,41 @@
   }
   .asterisk-btn:active { transform: scale(0.9); color: var(--klein); }
 
-  /* Orb stage */
-  .orb-stage {
-    flex-shrink: 0;
-    padding: 24px 0 20px;
+  /* ---- Orb wrap ---- */
+  .orb-wrap {
+    flex: 1 1 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    height: 200px;
+    padding: 8px 0;
+    min-height: 220px;
+    transition: flex-basis 0.5s ease, min-height 0.5s ease, padding 0.5s ease;
   }
+  body.chat-open .orb-wrap {
+    flex: 0 0 auto;
+    min-height: 160px;
+    padding: 18px 0 10px;
+  }
+
+  /* ---- Orb (button) ---- */
   .orb {
     position: relative;
-    width: 58px; height: 58px;
+    width: 84px; height: 84px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    touch-action: none;
   }
+  body.chat-open .orb { width: 62px; height: 62px; transition: width 0.5s ease, height 0.5s ease; }
   .orb .dot {
     position: absolute;
     inset: 0;
     border-radius: 50%;
     background: var(--klein);
     z-index: 3;
-    box-shadow: 0 4px 18px rgba(0,47,167,0.22);
-    transition: transform 0.3s ease;
+    box-shadow: 0 8px 28px rgba(0,47,167,0.28);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   .orb .ring {
     position: absolute;
@@ -180,85 +206,114 @@
     opacity: 0;
     transform-origin: center;
     z-index: 1;
+    pointer-events: none;
   }
-  .orb.active .dot { animation: dot-breathe 2.4s ease-in-out infinite; }
-  .orb.active .ring {
-    animation: ring-out 3.2s ease-out infinite;
-  }
-  .orb.active .ring:nth-child(2) { animation-delay: 0s; }
-  .orb.active .ring:nth-child(3) { animation-delay: 1.07s; }
-  .orb.active .ring:nth-child(4) { animation-delay: 2.14s; }
-
-  /* Gentle idle breathing — always on, subtle */
   .orb .ring-idle {
     position: absolute;
-    inset: -14px;
+    inset: -16px;
     border-radius: 50%;
     background: var(--klein-soft-10);
     z-index: 0;
     animation: idle-breathe 4.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Speaking state (AI talking): outward radiating pulses */
+  .orb.speaking .dot { animation: dot-breathe 2.4s ease-in-out infinite; }
+  .orb.speaking .ring { animation: ring-out 3.2s ease-out infinite; }
+  .orb.speaking .ring:nth-child(2) { animation-delay: 0s; }
+  .orb.speaking .ring:nth-child(3) { animation-delay: 1.07s; }
+  .orb.speaking .ring:nth-child(4) { animation-delay: 2.14s; }
+
+  /* Listening state (user holding): solid, faster breathing, tighter halo */
+  .orb.listening .dot {
+    animation: listen-pulse 0.9s ease-in-out infinite;
+    box-shadow: 0 0 0 8px var(--klein-soft-16), 0 8px 28px rgba(0,47,167,0.35);
   }
 
   @keyframes ring-out {
-    0%   { opacity: 0.18; transform: scale(1); }
-    70%  { opacity: 0.06; }
-    100% { opacity: 0; transform: scale(3.4); }
+    0%   { opacity: 0.22; transform: scale(1); }
+    70%  { opacity: 0.05; }
+    100% { opacity: 0; transform: scale(3.2); }
   }
   @keyframes dot-breathe {
     0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.05); }
+    50%      { transform: scale(1.06); }
+  }
+  @keyframes listen-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
   }
   @keyframes idle-breathe {
-    0%, 100% { opacity: 0.35; transform: scale(1); }
-    50%      { opacity: 0.6;  transform: scale(1.12); }
+    0%, 100% { opacity: 0.38; transform: scale(1); }
+    50%      { opacity: 0.62; transform: scale(1.12); }
   }
 
-  /* Rule + chevron */
-  .rule {
+  /* ---- Chat handle (closed state, bottom) ---- */
+  .handle-closed {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 18px 0 calc(28px + var(--safe-bottom));
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--klein);
+    line-height: 1;
+    text-align: center;
+  }
+  body.chat-open .handle-closed { display: none; }
+  .handle-closed:active { transform: scale(0.92); }
+
+  /* ---- Chat panel (open state) ---- */
+  .chat-panel {
+    flex: 0 0 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: flex-basis 0.5s ease, opacity 0.3s ease 0.1s;
+  }
+  body.chat-open .chat-panel {
+    flex: 1 1 auto;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .chat-rule {
     height: 1px;
     background: var(--rule);
     margin: 0 22px;
     flex-shrink: 0;
   }
-  .chevron {
+  .handle-open {
     flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    padding: 8px 0 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 0 4px;
     font-family: var(--serif);
-    font-weight: 300;
     font-size: 26px;
+    font-weight: 300;
     color: var(--klein);
     line-height: 1;
-    letter-spacing: 0;
+    text-align: center;
   }
+  .handle-open:active { transform: scale(0.92); }
 
-  /* ---------- Conversation ---------- */
+  /* ---- Conversation ---- */
   main.conversation {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 16px 30px 28px;
+    padding: 12px 30px 20px;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     position: relative;
   }
   main.conversation::-webkit-scrollbar { display: none; }
-
-  .ready-state {
-    text-align: left;
-    font-family: var(--serif);
-    font-weight: 300;
-    font-size: 22px;
-    line-height: 1.35;
-    color: var(--klein);
-    letter-spacing: 0.005em;
-    margin: 18px 0 0;
-    opacity: 0;
-    animation: fade-in 1.2s ease 0.6s forwards;
-  }
-  @keyframes fade-in { to { opacity: 1; } }
-  .ready-state.gone { display: none; }
 
   .message {
     margin: 0 0 22px;
@@ -292,44 +347,16 @@
   }
   @keyframes blink { to { visibility: hidden; } }
 
-  /* ---------- Input bar ---------- */
+  /* ---- Text input ---- */
   footer.input-bar {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 18px 16px;
-    border-top: 1px solid var(--rule-soft);
+    padding: 10px 22px 14px;
     background: var(--paper-soft);
+    border-top: 1px solid var(--rule-soft);
   }
-  .icon-btn {
-    flex-shrink: 0;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--rule);
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    color: var(--ink);
-    padding: 0;
-  }
-  .icon-btn:active { transform: scale(0.94); }
-  .icon-btn.mic.recording {
-    background: var(--klein);
-    border-color: var(--klein);
-    color: var(--paper);
-    animation: recording-pulse 1.4s ease-in-out infinite;
-  }
-  @keyframes recording-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0,47,167,0.35); }
-    50%      { box-shadow: 0 0 0 10px rgba(0,47,167,0);   }
-  }
-  .icon-btn.send { background: var(--ink); color: var(--paper-soft); border-color: var(--ink); }
-  .icon-btn.send:disabled { opacity: 0.18; cursor: default; background: transparent; color: var(--ink); border-color: var(--rule); }
-
   .text-input {
     flex: 1;
     appearance: none;
@@ -338,7 +365,7 @@
     background: transparent;
     color: var(--ink);
     font-family: var(--serif);
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 300;
     letter-spacing: 0.002em;
     padding: 10px 4px;
@@ -351,8 +378,86 @@
   }
   .text-input:focus { border-bottom-color: var(--klein); }
   .text-input::placeholder { color: var(--ink-faint); font-style: italic; }
+  .send-btn {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--ink);
+    color: var(--paper-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s ease, opacity 0.2s ease;
+  }
+  .send-btn:active { transform: scale(0.94); }
+  .send-btn:disabled { opacity: 0.15; cursor: default; background: transparent; color: var(--ink); }
 
-  /* ---------- Toast ---------- */
+  /* ---- Settings overlay ---- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,26,28,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 40;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .settings-card {
+    background: var(--paper-soft);
+    border: 1px solid var(--rule);
+    width: 100%;
+    max-width: 320px;
+    padding: 26px 22px 20px;
+    position: relative;
+  }
+  .settings-card h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+  .settings-close {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 24px;
+    color: var(--ink-mute);
+    line-height: 1;
+    padding: 4px 6px;
+  }
+  .settings-item {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--rule-soft);
+    cursor: pointer;
+    padding: 14px 4px;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--ink);
+    text-transform: lowercase;
+  }
+  .settings-item:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .settings-item:active { color: var(--klein); }
+
+  /* ---- Toast ---- */
   .toast {
     position: fixed;
     bottom: calc(110px + var(--safe-bottom));
@@ -376,10 +481,11 @@
   .toast.show { opacity: 1; }
 
   @media (max-width: 380px) {
-    .message.ai   { font-size: 20px; }
-    .message.user { font-size: 18px; }
-    .ready-state  { font-size: 20px; }
-    .entry-signin { font-size: 20px; }
+    .message.ai    { font-size: 20px; }
+    .message.user  { font-size: 18px; }
+    .entry-reflect { font-size: 22px; }
+    .orb { width: 72px; height: 72px; }
+    body.chat-open .orb { width: 56px; height: 56px; }
   }
 </style>
 </head>
@@ -395,80 +501,95 @@
     <div class="entry-mandala">
       <img src="/assets/mandala.svg" alt="" />
     </div>
-    <button class="entry-signin" id="entry-signin">REFLECT</button>
+    <button class="entry-reflect" id="entry-reflect">REFLECT</button>
   </section>
 
   <!-- ============== NUCLEUS ============== -->
   <section class="nucleus" id="nucleus">
+
     <header class="top-bar">
-      <button class="asterisk-btn" id="reset-btn" title="begin again" aria-label="begin again">*</button>
+      <button class="asterisk-btn" id="settings-btn" title="settings" aria-label="settings">*</button>
     </header>
 
-    <div class="orb-stage">
-      <div class="orb" id="orb">
+    <div class="orb-wrap">
+      <button class="orb" id="orb" aria-label="hold to speak">
         <div class="ring-idle"></div>
         <div class="ring"></div>
         <div class="ring"></div>
         <div class="ring"></div>
         <div class="dot"></div>
-      </div>
+      </button>
     </div>
 
-    <div class="rule"></div>
-    <div class="chevron">∨</div>
+    <button class="handle-closed" id="handle-closed" aria-label="open conversation">∧</button>
 
-    <main class="conversation" id="conversation">
-      <div class="ready-state" id="ready-state">ready to reflect</div>
-    </main>
+    <div class="chat-panel">
+      <div class="chat-rule"></div>
+      <button class="handle-open" id="handle-open" aria-label="close conversation">∨</button>
+      <main class="conversation" id="conversation"></main>
+      <footer class="input-bar">
+        <input class="text-input" id="text-input" type="text" placeholder="or write it" autocomplete="off" autocorrect="on" spellcheck="true" />
+        <button class="send-btn" id="send-btn" aria-label="send" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"/>
+            <polyline points="5 12 12 5 19 12"/>
+          </svg>
+        </button>
+      </footer>
+    </div>
 
-    <footer class="input-bar">
-      <button class="icon-btn mic" id="mic-btn" aria-label="hold to speak">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="3" width="6" height="12" rx="3"/>
-          <path d="M5 11a7 7 0 0 0 14 0"/>
-          <line x1="12" y1="18" x2="12" y2="22"/>
-        </svg>
-      </button>
-      <input class="text-input" id="text-input" type="text" placeholder="or write it" autocomplete="off" autocorrect="on" spellcheck="true" />
-      <button class="icon-btn send" id="send-btn" aria-label="send" disabled>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="19" x2="12" y2="5"/>
-          <polyline points="5 12 12 5 19 12"/>
-        </svg>
-      </button>
-    </footer>
   </section>
+</div>
+
+<!-- Settings -->
+<div class="overlay" id="settings-overlay">
+  <div class="settings-card">
+    <button class="settings-close" id="settings-close" aria-label="close">×</button>
+    <h3>settings</h3>
+    <button class="settings-item" id="settings-reset">begin again</button>
+    <button class="settings-item" id="settings-signout">sign out</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ---------- Interphase — Nucleus ---------- */
+/* ============================================================
+   Interphase — Nucleus (client)
+   ============================================================ */
 
-const API_URL = "/api/reflect";
+const API_REFLECT = "/api/reflect";
+const API_SPEAK   = "/api/speak";
+const API_LOG     = "/api/log";
 
 const state = {
   sessionId: null,
   signedIn: false,
+  chatOpen: false,
   messages: [],
   streaming: false,
   voice: null,
   firstSentenceSpoken: false,
   spokenUpTo: 0,
+  ttsAvailable: true, // flipped to false on first failure, falls back to browser voice
 };
 
 const el = {
-  entry:        document.getElementById("entry"),
-  entrySignin:  document.getElementById("entry-signin"),
-  nucleus:      document.getElementById("nucleus"),
-  orb:          document.getElementById("orb"),
-  readyState:   document.getElementById("ready-state"),
-  conversation: document.getElementById("conversation"),
-  micBtn:       document.getElementById("mic-btn"),
-  textInput:    document.getElementById("text-input"),
-  sendBtn:      document.getElementById("send-btn"),
-  resetBtn:     document.getElementById("reset-btn"),
-  toast:        document.getElementById("toast"),
+  entry:          document.getElementById("entry"),
+  entryReflect:   document.getElementById("entry-reflect"),
+  nucleus:        document.getElementById("nucleus"),
+  orb:            document.getElementById("orb"),
+  handleClosed:   document.getElementById("handle-closed"),
+  handleOpen:     document.getElementById("handle-open"),
+  conversation:   document.getElementById("conversation"),
+  textInput:      document.getElementById("text-input"),
+  sendBtn:        document.getElementById("send-btn"),
+  settingsBtn:    document.getElementById("settings-btn"),
+  settingsOverlay:document.getElementById("settings-overlay"),
+  settingsClose:  document.getElementById("settings-close"),
+  settingsReset:  document.getElementById("settings-reset"),
+  settingsSignout:document.getElementById("settings-signout"),
+  toast:          document.getElementById("toast"),
 };
 
 /* ---------- Session ---------- */
@@ -482,57 +603,28 @@ function ensureSession() {
   state.sessionId = id;
 }
 
-/* ---------- Voice selection ----------
-   Preference order, most-natural first:
-     1. iOS 17+/macOS Sonoma+ Premium neural voices (Siri-grade)
-     2. Enhanced classic voices
-     3. Original Samantha / Daniel fallbacks
-     4. Any en-* default
-   Console-logs the pick so you can debug on real devices. */
+/* ---------- Voice selection (fallback browser TTS) ---------- */
 function pickVoice() {
   const voices = speechSynthesis.getVoices();
   if (!voices.length) return null;
-
-  const byName = (re) => (v) => re.test(v.name);
   const isEnglish = (v) => /^en(-|$)/i.test(v.lang);
-
   const priorities = [
-    // --- Premium neural voices (iOS 17+ / macOS Sonoma+) ---
     (v) => /\bAva\b/i.test(v.name) && /premium/i.test(v.name),
     (v) => /\bZoe\b/i.test(v.name) && /premium/i.test(v.name),
     (v) => /\bAllison\b/i.test(v.name) && /premium/i.test(v.name),
-    (v) => /\bEvan\b/i.test(v.name) && /premium/i.test(v.name),
-    (v) => /\bJoelle\b/i.test(v.name) && /premium/i.test(v.name),
-    (v) => /\bSamantha\b/i.test(v.name) && /premium/i.test(v.name),
-    (v) => /\bNathan\b/i.test(v.name) && /premium/i.test(v.name),
-    // --- Premium without the explicit tag (older iOS naming) ---
-    byName(/\bAva\b/i),
-    byName(/\bZoe\b/i),
-    byName(/\bAllison\b/i),
-    byName(/\bEvan\b/i),
-    byName(/\bJoelle\b/i),
-    // --- Enhanced classic voices ---
-    (v) => /Samantha/i.test(v.name) && /enhanced/i.test(v.name),
-    (v) => /Daniel/i.test(v.name) && /enhanced/i.test(v.name),
-    // --- Any premium/enhanced English voice at all ---
+    (v) => /\bAva\b/i.test(v.name),
+    (v) => /Samantha/i.test(v.name) && /enhanced|premium/i.test(v.name),
     (v) => /premium|enhanced/i.test(v.name) && isEnglish(v),
-    // --- Original Samantha / Daniel ---
     (v) => v.name === "Samantha",
     (v) => v.name === "Daniel",
-    // --- Any English voice ---
     (v) => v.lang === "en-GB",
     (v) => v.lang === "en-US",
-    (v) => isEnglish(v) && v.default,
     (v) => isEnglish(v),
     (v) => v.default,
   ];
-
   for (const test of priorities) {
     const hit = voices.find(test);
-    if (hit) {
-      console.log("[interphase] voice ->", hit.name, "(" + hit.lang + ")");
-      return hit;
-    }
+    if (hit) return hit;
   }
   return voices[0];
 }
@@ -552,14 +644,24 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.toast.classList.remove("show"), 2600);
 }
 
-/* ---------- Message rendering ---------- */
-function hideReadyState() {
-  if (el.readyState && !el.readyState.classList.contains("gone")) {
-    el.readyState.classList.add("gone");
-  }
+/* ---------- Chat drawer ---------- */
+function openChat() {
+  if (state.chatOpen) return;
+  state.chatOpen = true;
+  document.body.classList.add("chat-open");
+  setTimeout(scrollToBottom, 320);
 }
+function closeChat() {
+  if (!state.chatOpen) return;
+  state.chatOpen = false;
+  document.body.classList.remove("chat-open");
+}
+el.handleClosed.addEventListener("click", openChat);
+el.handleOpen.addEventListener("click", closeChat);
+
+/* ---------- Messages ---------- */
 function appendAiMessage() {
-  hideReadyState();
+  openChat();
   const div = document.createElement("div");
   div.className = "message ai";
   div.innerHTML = `<span class="text"></span><span class="cursor"></span>`;
@@ -568,7 +670,7 @@ function appendAiMessage() {
   return div;
 }
 function appendUserMessage(text) {
-  hideReadyState();
+  openChat();
   const div = document.createElement("div");
   div.className = "message user";
   div.textContent = text;
@@ -576,24 +678,126 @@ function appendUserMessage(text) {
   scrollToBottom();
 }
 function scrollToBottom() {
-  el.conversation.scrollTo({ top: el.conversation.scrollHeight, behavior: "smooth" });
+  requestAnimationFrame(() => {
+    el.conversation.scrollTo({ top: el.conversation.scrollHeight, behavior: "smooth" });
+  });
 }
 
 /* ---------- Orb state ---------- */
-function orbActive(on) {
-  el.orb.classList.toggle("active", !!on);
+function orbState(s) {
+  el.orb.classList.remove("speaking", "listening");
+  if (s) el.orb.classList.add(s);
 }
 
-/* ---------- Sentence-aware speech ---------- */
-function speakSentence(sentence) {
-  if (!sentence.trim()) return;
-  const u = new SpeechSynthesisUtterance(sentence.trim());
-  u.rate = 0.88;
-  u.pitch = 0.95;
-  u.volume = 1.0;
-  if (state.voice) u.voice = state.voice;
-  speechSynthesis.speak(u);
+/* ============================================================
+   AUDIO PIPELINE
+   - Single reusable Audio element (unlocked on REFLECT tap)
+   - Per-sentence TTS via /api/speak (OpenAI TTS-1 nova)
+   - Queued playback; fire-and-forget parallel synthesis
+   - Fallback to browser SpeechSynthesis on any failure
+   ============================================================ */
+
+let audioPlayer = null;
+const audioQueue = [];  // { promise: Promise<string|null>, sentence: string }
+let audioPlaying = false;
+
+function unlockAudio() {
+  if (audioPlayer) return;
+  audioPlayer = new Audio();
+  audioPlayer.preload = "auto";
+  // Silent 44-byte WAV; playing it inside the REFLECT gesture unlocks the element.
+  audioPlayer.src = "data:audio/wav;base64,UklGRhwAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=";
+  audioPlayer.play().catch(() => {});
+  // Also warm SpeechSynthesis as a fallback
+  try {
+    const u = new SpeechSynthesisUtterance("");
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  } catch(_) {}
 }
+
+async function fetchTTS(text) {
+  if (!state.ttsAvailable) return null;
+  try {
+    const resp = await fetch(API_SPEAK, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!resp.ok) throw new Error("tts " + resp.status);
+    const blob = await resp.blob();
+    return URL.createObjectURL(blob);
+  } catch (err) {
+    console.warn("[interphase] TTS failed, falling back to browser voice:", err);
+    state.ttsAvailable = false;
+    return null;
+  }
+}
+
+function playBlobUrl(url) {
+  return new Promise((resolve) => {
+    if (!audioPlayer) audioPlayer = new Audio();
+    const done = () => { try { URL.revokeObjectURL(url); } catch(_) {}; resolve(); };
+    audioPlayer.onended = done;
+    audioPlayer.onerror = done;
+    audioPlayer.src = url;
+    audioPlayer.play().catch(done);
+  });
+}
+
+function fallbackSpeak(sentence) {
+  return new Promise((resolve) => {
+    try {
+      const u = new SpeechSynthesisUtterance(sentence);
+      u.rate = 0.88;
+      u.pitch = 0.95;
+      if (state.voice) u.voice = state.voice;
+      u.onend = resolve;
+      u.onerror = resolve;
+      speechSynthesis.speak(u);
+    } catch (_) { resolve(); }
+  });
+}
+
+async function processAudioQueue() {
+  if (audioPlaying) return;
+  audioPlaying = true;
+  orbState("speaking");
+  try {
+    while (audioQueue.length > 0) {
+      const item = audioQueue.shift();
+      const url = await item.promise;
+      if (url) await playBlobUrl(url);
+      else     await fallbackSpeak(item.sentence);
+    }
+  } finally {
+    audioPlaying = false;
+    // Only drop the speaking state if no new items arrived while playing
+    if (audioQueue.length === 0) orbState(null);
+    else processAudioQueue();
+  }
+}
+
+function speakSentence(sentence) {
+  const s = (sentence || "").trim();
+  if (!s) return;
+  // Fire TTS request immediately (parallel), queue the promise
+  const promise = fetchTTS(s);
+  audioQueue.push({ promise, sentence: s });
+  if (!audioPlaying) processAudioQueue();
+}
+
+function stopAllSpeech() {
+  try { speechSynthesis.cancel(); } catch(_) {}
+  audioQueue.length = 0;
+  if (audioPlayer) {
+    try { audioPlayer.pause(); } catch(_) {}
+  }
+  audioPlaying = false;
+  orbState(null);
+}
+
+/* ---------- Sentence detection (unchanged rhythm) ---------- */
 function checkForSentences(fullText, { force = false } = {}) {
   const re = /[.!?…](?=\s|$|["')\]])/g;
   let lastEnd = -1, m;
@@ -606,7 +810,7 @@ function checkForSentences(fullText, { force = false } = {}) {
     state.spokenUpTo = lastEnd;
     if (!state.firstSentenceSpoken) {
       state.firstSentenceSpoken = true;
-      setTimeout(() => speakSentence(chunk), 400); // intentional 400ms
+      setTimeout(() => speakSentence(chunk), 400); // briefing: intentional 400ms
     } else {
       speakSentence(chunk);
     }
@@ -624,12 +828,13 @@ function checkForSentences(fullText, { force = false } = {}) {
   }
 }
 
-/* ---------- Streaming API call ---------- */
+/* ============================================================
+   STREAMING CONVERSATION
+   ============================================================ */
 async function askInterphase(userText) {
   state.messages.push({ role: "user", content: userText });
-  try { speechSynthesis.cancel(); } catch (_) {}
+  stopAllSpeech();
 
-  // Pre-create the AI bubble slot (orb stays active through the call)
   let aiDiv = null;
   let textSpan = null;
   let fullText = "";
@@ -637,16 +842,12 @@ async function askInterphase(userText) {
   state.spokenUpTo = 0;
   state.streaming = true;
   updateSendEnabled();
-  orbActive(true);
 
   try {
-    const resp = await fetch(API_URL, {
+    const resp = await fetch(API_REFLECT, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        session_id: state.sessionId,
-        messages: state.messages,
-      }),
+      body: JSON.stringify({ session_id: state.sessionId, messages: state.messages }),
     });
 
     if (!resp.ok) {
@@ -655,7 +856,6 @@ async function askInterphase(userText) {
       toast("server error — try again");
       state.streaming = false;
       state.messages.pop();
-      orbActive(false);
       updateSendEnabled();
       return;
     }
@@ -670,23 +870,17 @@ async function askInterphase(userText) {
       buffer += decoder.decode(value, { stream: true });
       const events = buffer.split("\n\n");
       buffer = events.pop() || "";
-
       for (const evt of events) {
         const lines = evt.split("\n");
         let dataLine = null;
         for (const l of lines) if (l.startsWith("data: ")) dataLine = l.slice(6);
-        if (!dataLine) continue;
-        if (dataLine === "[DONE]") continue;
+        if (!dataLine || dataLine === "[DONE]") continue;
         let payload;
         try { payload = JSON.parse(dataLine); } catch { continue; }
-
         if (payload.type === "content_block_delta" &&
             payload.delta && payload.delta.type === "text_delta") {
           const tok = payload.delta.text;
-          if (!aiDiv) {
-            aiDiv = appendAiMessage();
-            textSpan = aiDiv.querySelector(".text");
-          }
+          if (!aiDiv) { aiDiv = appendAiMessage(); textSpan = aiDiv.querySelector(".text"); }
           fullText += tok;
           textSpan.textContent = fullText;
           scrollToBottom();
@@ -704,7 +898,18 @@ async function askInterphase(userText) {
     checkForSentences(fullText, { force: true });
 
     if (fullText.trim()) {
-      state.messages.push({ role: "assistant", content: fullText.trim() });
+      const assistantText = fullText.trim();
+      state.messages.push({ role: "assistant", content: assistantText });
+      // Fire-and-forget log to Supabase
+      fetch(API_LOG, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          user_text: userText,
+          assistant_text: assistantText,
+        }),
+      }).catch(() => {});
     } else {
       state.messages.pop();
     }
@@ -715,19 +920,12 @@ async function askInterphase(userText) {
   } finally {
     state.streaming = false;
     updateSendEnabled();
-    // Stop orb pulse once speech queue is done (not immediately — let the voice finish).
-    const stopOrbWhenSilent = () => {
-      if (speechSynthesis.speaking || speechSynthesis.pending) {
-        setTimeout(stopOrbWhenSilent, 400);
-      } else {
-        orbActive(false);
-      }
-    };
-    setTimeout(stopOrbWhenSilent, 500);
   }
 }
 
-/* ---------- Input handling ---------- */
+/* ============================================================
+   INPUT — orb push-to-talk + text fallback
+   ============================================================ */
 function submit(text) {
   const t = (text || "").trim();
   if (!t || state.streaming) return;
@@ -745,7 +943,7 @@ function updateSendEnabled() {
   el.sendBtn.disabled = !el.textInput.value.trim() || state.streaming;
 }
 
-/* ---------- Speech recognition (hold to speak) ---------- */
+/* ---- Speech recognition on the orb ---- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let recognizing = false;
@@ -764,6 +962,7 @@ function setupRecognition() {
       if (e.results[i].isFinal) finalTxt += t; else interim += t;
     }
     recognizedText = (recognizedText + finalTxt).trim();
+    // preview interim into the text input so the user sees it building
     el.textInput.value = (recognizedText + " " + interim).trim();
     updateSendEnabled();
   };
@@ -776,9 +975,10 @@ function setupRecognition() {
   r.onend = () => {
     if (recognizing) {
       recognizing = false;
-      el.micBtn.classList.remove("recording");
+      orbState(null);
       const finalText = recognizedText.trim();
       recognizedText = "";
+      el.textInput.value = "";
       if (finalText) submit(finalText);
     }
   };
@@ -786,19 +986,15 @@ function setupRecognition() {
 }
 function startRecognition() {
   if (!recognition) recognition = setupRecognition();
-  if (!recognition) {
-    toast("speech input unavailable — type instead");
-    el.textInput.focus();
-    return;
-  }
+  if (!recognition) { toast("speech input unavailable — type instead"); return; }
   if (recognizing || state.streaming) return;
   try {
-    speechSynthesis.cancel();
+    stopAllSpeech();
     recognizedText = "";
     el.textInput.value = "";
     recognition.start();
     recognizing = true;
-    el.micBtn.classList.add("recording");
+    orbState("listening");
   } catch (err) { console.error(err); }
 }
 function stopRecognition(andSubmit = true) {
@@ -806,56 +1002,70 @@ function stopRecognition(andSubmit = true) {
   try { recognition.stop(); } catch (_) {}
   if (!andSubmit) {
     recognizing = false;
-    el.micBtn.classList.remove("recording");
+    orbState(null);
     recognizedText = "";
     el.textInput.value = "";
   }
 }
-el.micBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); startRecognition(); });
-el.micBtn.addEventListener("pointerup",    (e) => { e.preventDefault(); stopRecognition(true); });
-el.micBtn.addEventListener("pointerleave", () => { if (recognizing) stopRecognition(true); });
-el.micBtn.addEventListener("pointercancel",() => { if (recognizing) stopRecognition(false); });
 
-/* ---------- Reset ---------- */
-el.resetBtn.addEventListener("click", () => {
+/* Orb push-to-talk bindings */
+el.orb.addEventListener("pointerdown", (e) => { e.preventDefault(); startRecognition(); });
+el.orb.addEventListener("pointerup",   (e) => { e.preventDefault(); stopRecognition(true); });
+el.orb.addEventListener("pointerleave", () => { if (recognizing) stopRecognition(true); });
+el.orb.addEventListener("pointercancel",() => { if (recognizing) stopRecognition(false); });
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function openSettings() { el.settingsOverlay.classList.add("show"); }
+function closeSettings(){ el.settingsOverlay.classList.remove("show"); }
+el.settingsBtn.addEventListener("click", openSettings);
+el.settingsClose.addEventListener("click", closeSettings);
+el.settingsOverlay.addEventListener("click", (e) => {
+  if (e.target === el.settingsOverlay) closeSettings();
+});
+el.settingsReset.addEventListener("click", () => {
   if (state.streaming) return;
-  try { speechSynthesis.cancel(); } catch(_) {}
+  stopAllSpeech();
   state.messages = [];
-  el.conversation.innerHTML = '<div class="ready-state" id="ready-state">ready to reflect</div>';
-  el.readyState = document.getElementById("ready-state");
-  orbActive(false);
+  el.conversation.innerHTML = "";
+  closeSettings();
+  closeChat();
+});
+el.settingsSignout.addEventListener("click", () => {
+  if (state.streaming) return;
+  stopAllSpeech();
+  state.messages = [];
+  el.conversation.innerHTML = "";
+  closeSettings();
+  closeChat();
+  state.signedIn = false;
+  el.nucleus.classList.remove("revealed");
+  el.entry.classList.remove("hidden");
 });
 
-/* ---------- Sign in → Nucleus transition ---------- */
-function signIn() {
+/* ============================================================
+   SIGN-IN TRANSITION
+   ============================================================ */
+function reflect() {
   if (state.signedIn) return;
   state.signedIn = true;
 
-  // Unlock iOS audio on the gesture
-  try {
-    const warm = new SpeechSynthesisUtterance("");
-    warm.volume = 0;
-    speechSynthesis.speak(warm);
-  } catch (_) {}
+  // Unlock audio on this user gesture (both HTMLAudio + SpeechSynthesis)
+  unlockAudio();
 
   // Reveal nucleus
   el.entry.classList.add("hidden");
   el.nucleus.classList.add("revealed");
 
-  // Speak "ready to reflect" shortly after the transition lands
-  setTimeout(() => {
-    if (state.voice || pickVoice()) {
-      const u = new SpeechSynthesisUtterance("ready to reflect");
-      u.rate = 0.84;
-      u.pitch = 0.95;
-      if (state.voice) u.voice = state.voice;
-      speechSynthesis.speak(u);
-    }
-  }, 900);
+  // Speak "ready to reflect" once the transition lands
+  setTimeout(() => { speakSentence("ready to reflect."); }, 900);
 }
-el.entrySignin.addEventListener("click", signIn);
+el.entryReflect.addEventListener("click", reflect);
 
-/* ---------- Bootstrap ---------- */
+/* ============================================================
+   BOOTSTRAP
+   ============================================================ */
 if (speechSynthesis.getVoices().length === 0) {
   speechSynthesis.onvoiceschanged = warmVoices;
 } else {
