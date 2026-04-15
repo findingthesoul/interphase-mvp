@@ -482,20 +482,57 @@ function ensureSession() {
   state.sessionId = id;
 }
 
-/* ---------- Voice selection ---------- */
+/* ---------- Voice selection ----------
+   Preference order, most-natural first:
+     1. iOS 17+/macOS Sonoma+ Premium neural voices (Siri-grade)
+     2. Enhanced classic voices
+     3. Original Samantha / Daniel fallbacks
+     4. Any en-* default
+   Console-logs the pick so you can debug on real devices. */
 function pickVoice() {
   const voices = speechSynthesis.getVoices();
   if (!voices.length) return null;
+
+  const byName = (re) => (v) => re.test(v.name);
+  const isEnglish = (v) => /^en(-|$)/i.test(v.lang);
+
   const priorities = [
-    v => v.name === "Samantha",
-    v => v.name === "Daniel",
-    v => v.lang === "en-GB",
-    v => v.lang === "en-US",
-    v => v.default,
+    // --- Premium neural voices (iOS 17+ / macOS Sonoma+) ---
+    (v) => /\bAva\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bZoe\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bAllison\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bEvan\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bJoelle\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bSamantha\b/i.test(v.name) && /premium/i.test(v.name),
+    (v) => /\bNathan\b/i.test(v.name) && /premium/i.test(v.name),
+    // --- Premium without the explicit tag (older iOS naming) ---
+    byName(/\bAva\b/i),
+    byName(/\bZoe\b/i),
+    byName(/\bAllison\b/i),
+    byName(/\bEvan\b/i),
+    byName(/\bJoelle\b/i),
+    // --- Enhanced classic voices ---
+    (v) => /Samantha/i.test(v.name) && /enhanced/i.test(v.name),
+    (v) => /Daniel/i.test(v.name) && /enhanced/i.test(v.name),
+    // --- Any premium/enhanced English voice at all ---
+    (v) => /premium|enhanced/i.test(v.name) && isEnglish(v),
+    // --- Original Samantha / Daniel ---
+    (v) => v.name === "Samantha",
+    (v) => v.name === "Daniel",
+    // --- Any English voice ---
+    (v) => v.lang === "en-GB",
+    (v) => v.lang === "en-US",
+    (v) => isEnglish(v) && v.default,
+    (v) => isEnglish(v),
+    (v) => v.default,
   ];
+
   for (const test of priorities) {
     const hit = voices.find(test);
-    if (hit) return hit;
+    if (hit) {
+      console.log("[interphase] voice ->", hit.name, "(" + hit.lang + ")");
+      return hit;
+    }
   }
   return voices[0];
 }
