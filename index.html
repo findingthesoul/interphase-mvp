@@ -8,29 +8,31 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Interphase" />
 <meta name="theme-color" content="#FFFFFF" />
-<title>Interphase — Nucleus</title>
+<title>Interphase</title>
 <link rel="icon" type="image/svg+xml" href="https://findingthesoul.github.io/interphase/favicon.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=JetBrains+Mono:wght@400;500&display=swap" />
 
 <style>
   :root {
     --paper: #FFFFFF;
-    --paper-soft: #F5F5F5;
-    --form-bg: #D3D3D3;
-    --ink: #231F20;
+    --paper-soft: #F6F6F7;
+    --ink: #1A1A1C;
     --ink-soft: #3A3532;
-    --ink-mute: rgba(35,31,32,.58);
-    --ink-faint: rgba(35,31,32,.34);
-    --rule: rgba(35,31,32,.14);
-    --rule-soft: rgba(35,31,32,.08);
+    --ink-mute: rgba(26,26,28,.55);
+    --ink-faint: rgba(26,26,28,.28);
+    --rule: rgba(26,26,28,.12);
+    --rule-soft: rgba(26,26,28,.06);
     --klein: #002FA7;
-    --klein-soft: rgba(0,47,167,.08);
+    --klein-ink: #001F6F;
+    --klein-soft-16: rgba(0,47,167,.16);
+    --klein-soft-10: rgba(0,47,167,.10);
+    --klein-soft-05: rgba(0,47,167,.05);
 
-    --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    --display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --sans: -apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
     --safe-top: env(safe-area-inset-top, 0px);
@@ -40,9 +42,9 @@
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0;
-    background: var(--paper);
+    background: var(--paper-soft);
     color: var(--ink);
-    font-family: var(--sans);
+    font-family: var(--serif);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overscroll-behavior: none;
@@ -61,68 +63,174 @@
     padding-top: var(--safe-top);
     padding-bottom: var(--safe-bottom);
     position: relative;
-    background: var(--paper);
+    background: var(--paper-soft);
   }
 
-  /* ---------- Nav (mirrors .site-nav) ---------- */
-  header.nucleus-nav {
+  /* ========================================================
+     SCREEN A — ENTRY (wordmark · mandala · SIGN IN)
+     ========================================================  */
+  .entry {
+    position: absolute;
+    inset: 0;
+    padding: calc(var(--safe-top) + 72px) 36px calc(var(--safe-bottom) + 56px);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 16px 22px 14px;
-    border-bottom: 1px solid var(--rule-soft);
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: saturate(160%) blur(14px);
-    -webkit-backdrop-filter: saturate(160%) blur(14px);
-    flex-shrink: 0;
+    background: var(--paper-soft);
+    z-index: 5;
+    opacity: 1;
+    transition: opacity 0.8s ease;
   }
-  .brand-wordmark { height: 30px; width: auto; display: block; }
-  .nav-meta {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
+  .entry.hidden { opacity: 0; pointer-events: none; }
+  .entry-wordmark { width: min(62vw, 240px); height: auto; display: block; }
+  .entry-wordmark img { width: 100%; height: auto; display: block; }
+  .entry-mandala {
+    width: min(68vw, 280px);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: slow-rotate 120s linear infinite;
+  }
+  .entry-mandala img { width: 100%; height: 100%; object-fit: contain; }
+  @keyframes slow-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .entry-signin {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 20px 32px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    color: var(--ink);
     text-transform: uppercase;
-    color: var(--ink-mute);
-    white-space: nowrap;
+    transition: color 0.2s ease, transform 0.1s ease;
   }
-  .nav-meta .active { color: var(--klein); }
+  .entry-signin:active { transform: scale(0.97); color: var(--klein); }
 
-  /* ---------- Hero plate under nav ---------- */
-  .plate {
-    background: var(--form-bg);
-    padding: 20px 22px 18px;
+  /* ========================================================
+     SCREEN B — NUCLEUS (orb · conversation)
+     ========================================================  */
+  .nucleus {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.3s;
+    pointer-events: none;
+  }
+  .nucleus.revealed { opacity: 1; pointer-events: auto; }
+
+  /* Top bar — just the asterisk */
+  .top-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
+    justify-content: flex-end;
+    padding: 14px 24px 4px;
     flex-shrink: 0;
+  }
+  .asterisk-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--ink);
+    padding: 8px 10px;
+    line-height: 1;
+    transition: color 0.2s ease, transform 0.1s ease;
+  }
+  .asterisk-btn:active { transform: scale(0.9); color: var(--klein); }
+
+  /* Orb stage */
+  .orb-stage {
+    flex-shrink: 0;
+    padding: 24px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
-    overflow: hidden;
+    height: 200px;
   }
-  .plate-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    font-weight: 500;
-    line-height: 1.3;
-    max-width: 60%;
+  .orb {
+    position: relative;
+    width: 58px; height: 58px;
   }
-  .plate-label em { font-style: normal; color: var(--klein); }
-  .plate-mandala {
-    width: 62px; height: 62px;
-    flex-shrink: 0;
-    transform: rotate(15deg);
+  .orb .dot {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--klein);
+    z-index: 3;
+    box-shadow: 0 4px 18px rgba(0,47,167,0.22);
+    transition: transform 0.3s ease;
+  }
+  .orb .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--klein);
+    opacity: 0;
     transform-origin: center;
-    animation: spin 90s linear infinite;
-    opacity: 0.92;
+    z-index: 1;
   }
-  .plate-mandala img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  @keyframes spin {
-    from { transform: rotate(15deg); }
-    to   { transform: rotate(375deg); }
+  .orb.active .dot { animation: dot-breathe 2.4s ease-in-out infinite; }
+  .orb.active .ring {
+    animation: ring-out 3.2s ease-out infinite;
+  }
+  .orb.active .ring:nth-child(2) { animation-delay: 0s; }
+  .orb.active .ring:nth-child(3) { animation-delay: 1.07s; }
+  .orb.active .ring:nth-child(4) { animation-delay: 2.14s; }
+
+  /* Gentle idle breathing — always on, subtle */
+  .orb .ring-idle {
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    background: var(--klein-soft-10);
+    z-index: 0;
+    animation: idle-breathe 4.8s ease-in-out infinite;
+  }
+
+  @keyframes ring-out {
+    0%   { opacity: 0.18; transform: scale(1); }
+    70%  { opacity: 0.06; }
+    100% { opacity: 0; transform: scale(3.4); }
+  }
+  @keyframes dot-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+  }
+  @keyframes idle-breathe {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50%      { opacity: 0.6;  transform: scale(1.12); }
+  }
+
+  /* Rule + chevron */
+  .rule {
+    height: 1px;
+    background: var(--rule);
+    margin: 0 22px;
+    flex-shrink: 0;
+  }
+  .chevron {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 26px;
+    color: var(--klein);
+    line-height: 1;
+    letter-spacing: 0;
   }
 
   /* ---------- Conversation ---------- */
@@ -130,75 +238,59 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 40px 24px 28px;
+    padding: 16px 30px 28px;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    position: relative;
   }
   main.conversation::-webkit-scrollbar { display: none; }
 
+  .ready-state {
+    text-align: left;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.35;
+    color: var(--klein);
+    letter-spacing: 0.005em;
+    margin: 18px 0 0;
+    opacity: 0;
+    animation: fade-in 1.2s ease 0.6s forwards;
+  }
+  @keyframes fade-in { to { opacity: 1; } }
+  .ready-state.gone { display: none; }
+
   .message {
-    margin: 0 0 32px;
+    margin: 0 0 22px;
     -webkit-user-select: text;
     user-select: text;
+    font-family: var(--serif);
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: 0.002em;
+    text-wrap: pretty;
   }
-
-  /* AI question — echoes .tagline-block .big (display weight 200, lowercase, tight tracking) */
   .message.ai {
-    font-family: var(--display);
-    font-weight: 200;
-    font-size: 30px;
-    line-height: 1.05;
-    letter-spacing: -0.035em;
-    color: var(--ink);
-    text-wrap: balance;
-    text-transform: lowercase;
+    font-size: 22px;
+    color: var(--klein);
+    text-align: left;
   }
-  .message.ai em { color: var(--klein); font-style: normal; }
-
   .message.user {
-    font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--ink-soft);
-    background: var(--paper-soft);
-    border: 1px solid var(--rule-soft);
-    border-radius: 4px;
-    padding: 12px 14px;
-    max-width: 82%;
-    margin-left: auto;
-    font-weight: 400;
+    font-size: 20px;
+    color: var(--ink);
+    text-align: right;
+    margin-left: 15%;
   }
-
-  /* Streaming cursor — Klein blue bar */
   .message.ai .cursor {
     display: inline-block;
-    width: 10px;
-    height: 0.85em;
+    width: 2px;
+    height: 0.9em;
     background: var(--klein);
     vertical-align: -2px;
-    margin-left: 4px;
+    margin-left: 3px;
     animation: blink 0.9s steps(2, start) infinite;
   }
   @keyframes blink { to { visibility: hidden; } }
-
-  /* Thinking indicator */
-  .thinking {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    height: 30px;
-  }
-  .thinking .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--klein);
-    animation: pulse 1.3s ease-in-out infinite;
-  }
-  .thinking .dot:nth-child(2) { animation-delay: 0.18s; }
-  .thinking .dot:nth-child(3) { animation-delay: 0.36s; }
-  @keyframes pulse {
-    0%, 80%, 100% { opacity: 0.22; transform: translateY(0); }
-    40% { opacity: 1; transform: translateY(-2px); }
-  }
 
   /* ---------- Input bar ---------- */
   footer.input-bar {
@@ -206,37 +298,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 16px 18px;
-    border-top: 1px solid var(--rule);
-    background: var(--paper);
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--rule-soft);
+    background: var(--paper-soft);
   }
-
-  .text-input {
-    flex: 1;
-    appearance: none;
-    -webkit-appearance: none;
-    border: 1px solid var(--rule);
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 15px;
-    padding: 13px 16px;
-    border-radius: 2px;
-    outline: none;
-    -webkit-user-select: text;
-    user-select: text;
-    min-width: 0;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .text-input:focus { border-color: var(--klein); background: var(--klein-soft); }
-  .text-input::placeholder { color: var(--ink-faint); font-style: italic; }
-
   .icon-btn {
     flex-shrink: 0;
-    width: 46px; height: 46px;
-    border-radius: 2px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
     border: 1px solid var(--rule);
-    background: var(--paper);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,7 +316,7 @@
     color: var(--ink);
     padding: 0;
   }
-  .icon-btn:active { transform: scale(0.95); }
+  .icon-btn:active { transform: scale(0.94); }
   .icon-btn.mic.recording {
     background: var(--klein);
     border-color: var(--klein);
@@ -256,107 +327,35 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(0,47,167,0.35); }
     50%      { box-shadow: 0 0 0 10px rgba(0,47,167,0);   }
   }
-  .icon-btn.send { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .icon-btn.send:disabled { opacity: 0.2; cursor: default; background: var(--paper); color: var(--ink); border-color: var(--rule); }
+  .icon-btn.send { background: var(--ink); color: var(--paper-soft); border-color: var(--ink); }
+  .icon-btn.send:disabled { opacity: 0.18; cursor: default; background: transparent; color: var(--ink); border-color: var(--rule); }
 
-  .reset {
-    background: none;
+  .text-input {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
     border: none;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    cursor: pointer;
-    padding: 8px 0;
-  }
-  .reset:active { color: var(--klein); }
-
-  /* ---------- Modal (API key) ---------- */
-  .overlay {
-    position: fixed; inset: 0;
-    background: rgba(35,31,32,0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 20;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-  .overlay.hidden { display: none; }
-  .card {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    padding: 32px 26px 24px;
-    width: 100%;
-    max-width: 360px;
-    text-align: center;
-  }
-  .card .card-mandala { width: 82px; height: 82px; display: block; margin: 0 auto 18px; transform: rotate(15deg); }
-  .card .card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; }
-  .card h2 {
-    font-family: var(--display);
-    font-weight: 200;
-    font-size: 26px;
-    line-height: 1;
-    letter-spacing: -0.035em;
-    margin: 0 0 14px;
-    text-transform: lowercase;
+    background: transparent;
     color: var(--ink);
-  }
-  .card h2 em { color: var(--klein); font-style: normal; }
-  .card p {
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--ink-mute);
-    margin: 0 0 18px;
-    line-height: 1.55;
-  }
-  .card input {
-    width: 100%;
-    padding: 13px 14px;
-    font-family: var(--mono);
-    font-size: 12px;
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    background: var(--paper);
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: 0.002em;
+    padding: 10px 4px;
     outline: none;
-    color: var(--ink);
     -webkit-user-select: text;
     user-select: text;
+    min-width: 0;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom-color 0.2s ease;
   }
-  .card input:focus { border-color: var(--klein); background: var(--klein-soft); }
-  .card button {
-    margin-top: 14px;
-    width: 100%;
-    padding: 14px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--paper);
-    background: var(--klein);
-    border: 1px solid var(--klein);
-    border-radius: 2px;
-    cursor: pointer;
-  }
-  .card button:active { opacity: 0.88; }
-  .card .tiny {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 14px 0 0;
-    line-height: 1.6;
-  }
+  .text-input:focus { border-bottom-color: var(--klein); }
+  .text-input::placeholder { color: var(--ink-faint); font-style: italic; }
 
   /* ---------- Toast ---------- */
   .toast {
     position: fixed;
-    bottom: calc(108px + var(--safe-bottom));
+    bottom: calc(110px + var(--safe-bottom));
     left: 50%;
     transform: translateX(-50%);
     background: var(--ink);
@@ -377,8 +376,10 @@
   .toast.show { opacity: 1; }
 
   @media (max-width: 380px) {
-    .message.ai { font-size: 26px; }
-    .brand-wordmark { height: 26px; }
+    .message.ai   { font-size: 20px; }
+    .message.user { font-size: 18px; }
+    .ready-state  { font-size: 20px; }
+    .entry-signin { font-size: 20px; }
   }
 </style>
 </head>
@@ -386,38 +387,57 @@
 
 <div id="app">
 
-  <header class="nucleus-nav">
-    <img class="brand-wordmark" src="https://findingthesoul.github.io/interphase/wordmark.svg" alt="Interphase" />
-    <button class="reset" id="reset-btn" title="new reflection">begin&nbsp;again</button>
-  </header>
-
-  <div class="plate">
-    <div class="plate-label">
-      S · <em>Interphase</em><br/>Replication
+  <!-- ============== ENTRY ============== -->
+  <section class="entry" id="entry">
+    <div class="entry-wordmark">
+      <img src="/assets/wordmark.svg" alt="interphase" />
     </div>
-    <div class="plate-mandala">
-      <img src="https://findingthesoul.github.io/interphase/mandala.png" alt="" />
+    <div class="entry-mandala">
+      <img src="/assets/mandala.svg" alt="" />
     </div>
-  </div>
+    <button class="entry-signin" id="entry-signin">SIGN IN</button>
+  </section>
 
-  <main class="conversation" id="conversation"></main>
+  <!-- ============== NUCLEUS ============== -->
+  <section class="nucleus" id="nucleus">
+    <header class="top-bar">
+      <button class="asterisk-btn" id="reset-btn" title="begin again" aria-label="begin again">*</button>
+    </header>
 
-  <footer class="input-bar">
-    <button class="icon-btn mic" id="mic-btn" aria-label="hold to speak">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="3" width="6" height="12" rx="3"/>
-        <path d="M5 11a7 7 0 0 0 14 0"/>
-        <line x1="12" y1="18" x2="12" y2="22"/>
-      </svg>
-    </button>
-    <input class="text-input" id="text-input" type="text" placeholder="or write it" autocomplete="off" autocorrect="on" spellcheck="true" />
-    <button class="icon-btn send" id="send-btn" aria-label="send" disabled>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="19" x2="12" y2="5"/>
-        <polyline points="5 12 12 5 19 12"/>
-      </svg>
-    </button>
-  </footer>
+    <div class="orb-stage">
+      <div class="orb" id="orb">
+        <div class="ring-idle"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+    <div class="chevron">∨</div>
+
+    <main class="conversation" id="conversation">
+      <div class="ready-state" id="ready-state">ready to reflect</div>
+    </main>
+
+    <footer class="input-bar">
+      <button class="icon-btn mic" id="mic-btn" aria-label="hold to speak">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="3" width="6" height="12" rx="3"/>
+          <path d="M5 11a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+        </svg>
+      </button>
+      <input class="text-input" id="text-input" type="text" placeholder="or write it" autocomplete="off" autocorrect="on" spellcheck="true" />
+      <button class="icon-btn send" id="send-btn" aria-label="send" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/>
+          <polyline points="5 12 12 5 19 12"/>
+        </svg>
+      </button>
+    </footer>
+  </section>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -425,31 +445,11 @@
 <script>
 /* ---------- Interphase — Nucleus ---------- */
 
-const SYSTEM_PROMPT = `You are Interphase. You exist only to ask one reflective question at a time. You never give answers, advice, opinions, solutions, reassurance, or summaries.
-
-Rules — all are strict:
-1. Every reply is exactly one question. No more, no less.
-2. Questions are short. Rarely over 18 words. Often under 10.
-3. Front-load the question. The very first word of the reply is the beginning of the question itself. No preamble, no acknowledgement, no "So", "Well", "Hmm", "That sounds", "It seems", "I hear", "Thank you".
-4. Never use the word "I". Never refer to yourself.
-5. Never diagnose, label, or name what the user is feeling. Do not say "anxiety", "grief", "stress", "overwhelm", "burnout", "trauma", or any therapeutic term.
-6. Never reference therapy, coaching, mental health, wellness, mindfulness, or self-care language.
-7. Never reflect the user's words back verbatim. Do not quote them.
-8. Do not summarize what the user said.
-9. Use plain, grounded English. No metaphors unless the user uses one first.
-10. The question must be answerable — concrete enough to land on something real. Never abstract into uselessness.
-11. Every question moves one small step inward. Do not zoom out. Do not broaden. Narrow, specify, locate.
-12. If the user is silent, unsure, or says "I don't know", ask what the not-knowing is made of — do not rescue or fill the silence.
-13. Do not offer choices ("is it X or Y?") unless the contrast is the whole point.
-14. The question is the final thing. No trailing words after the question mark.
-15. No exclamations, no emoji, no headings, no lists.`;
-
-const OPENING_QUESTION = "What's the thing you've been almost saying?";
-
 const API_URL = "/api/reflect";
 
 const state = {
   sessionId: null,
+  signedIn: false,
   messages: [],
   streaming: false,
   voice: null,
@@ -458,6 +458,11 @@ const state = {
 };
 
 const el = {
+  entry:        document.getElementById("entry"),
+  entrySignin:  document.getElementById("entry-signin"),
+  nucleus:      document.getElementById("nucleus"),
+  orb:          document.getElementById("orb"),
+  readyState:   document.getElementById("ready-state"),
   conversation: document.getElementById("conversation"),
   micBtn:       document.getElementById("mic-btn"),
   textInput:    document.getElementById("text-input"),
@@ -511,7 +516,13 @@ function toast(msg) {
 }
 
 /* ---------- Message rendering ---------- */
+function hideReadyState() {
+  if (el.readyState && !el.readyState.classList.contains("gone")) {
+    el.readyState.classList.add("gone");
+  }
+}
 function appendAiMessage() {
+  hideReadyState();
   const div = document.createElement("div");
   div.className = "message ai";
   div.innerHTML = `<span class="text"></span><span class="cursor"></span>`;
@@ -520,22 +531,20 @@ function appendAiMessage() {
   return div;
 }
 function appendUserMessage(text) {
+  hideReadyState();
   const div = document.createElement("div");
   div.className = "message user";
   div.textContent = text;
   el.conversation.appendChild(div);
   scrollToBottom();
 }
-function appendThinking() {
-  const div = document.createElement("div");
-  div.className = "message ai";
-  div.innerHTML = `<span class="thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
-  el.conversation.appendChild(div);
-  scrollToBottom();
-  return div;
-}
 function scrollToBottom() {
   el.conversation.scrollTo({ top: el.conversation.scrollHeight, behavior: "smooth" });
+}
+
+/* ---------- Orb state ---------- */
+function orbActive(on) {
+  el.orb.classList.toggle("active", !!on);
 }
 
 /* ---------- Sentence-aware speech ---------- */
@@ -583,7 +592,7 @@ async function askInterphase(userText) {
   state.messages.push({ role: "user", content: userText });
   try { speechSynthesis.cancel(); } catch (_) {}
 
-  const thinking = appendThinking();
+  // Pre-create the AI bubble slot (orb stays active through the call)
   let aiDiv = null;
   let textSpan = null;
   let fullText = "";
@@ -591,6 +600,7 @@ async function askInterphase(userText) {
   state.spokenUpTo = 0;
   state.streaming = true;
   updateSendEnabled();
+  orbActive(true);
 
   try {
     const resp = await fetch(API_URL, {
@@ -603,12 +613,12 @@ async function askInterphase(userText) {
     });
 
     if (!resp.ok) {
-      thinking.remove();
       const errText = await resp.text().catch(() => "");
       console.error("Interphase API error:", resp.status, errText);
       toast("server error — try again");
       state.streaming = false;
       state.messages.pop();
+      orbActive(false);
       updateSendEnabled();
       return;
     }
@@ -637,7 +647,6 @@ async function askInterphase(userText) {
             payload.delta && payload.delta.type === "text_delta") {
           const tok = payload.delta.text;
           if (!aiDiv) {
-            thinking.remove();
             aiDiv = appendAiMessage();
             textSpan = aiDiv.querySelector(".text");
           }
@@ -661,16 +670,23 @@ async function askInterphase(userText) {
       state.messages.push({ role: "assistant", content: fullText.trim() });
     } else {
       state.messages.pop();
-      if (thinking.isConnected) thinking.remove();
     }
   } catch (err) {
     console.error(err);
-    if (thinking.isConnected) thinking.remove();
     toast("network interrupted");
     state.messages.pop();
   } finally {
     state.streaming = false;
     updateSendEnabled();
+    // Stop orb pulse once speech queue is done (not immediately — let the voice finish).
+    const stopOrbWhenSilent = () => {
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        setTimeout(stopOrbWhenSilent, 400);
+      } else {
+        orbActive(false);
+      }
+    };
+    setTimeout(stopOrbWhenSilent, 500);
   }
 }
 
@@ -768,46 +784,47 @@ el.resetBtn.addEventListener("click", () => {
   if (state.streaming) return;
   try { speechSynthesis.cancel(); } catch(_) {}
   state.messages = [];
-  el.conversation.innerHTML = "";
-  seedOpening();
+  el.conversation.innerHTML = '<div class="ready-state" id="ready-state">ready to reflect</div>';
+  el.readyState = document.getElementById("ready-state");
+  orbActive(false);
 });
 
-/* ---------- Bootstrap ---------- */
-function seedOpening() {
-  const div = document.createElement("div");
-  div.className = "message ai";
-  div.innerHTML = `<span class="text"></span>`;
-  el.conversation.appendChild(div);
-  const span = div.querySelector(".text");
-  const text = OPENING_QUESTION;
-  let i = 0;
-  const tick = () => {
-    span.textContent = text.slice(0, ++i);
-    if (i < text.length) setTimeout(tick, 28);
-  };
-  setTimeout(tick, 400);
-}
-function bootstrap() {
-  warmVoices();
-  seedOpening();
-  // iOS: unlock speech synthesis on first gesture
-  const unlock = () => {
-    try {
-      const u = new SpeechSynthesisUtterance("");
-      u.volume = 0;
-      speechSynthesis.speak(u);
-    } catch(_) {}
-    document.removeEventListener("pointerdown", unlock);
-  };
-  document.addEventListener("pointerdown", unlock, { once: true });
-}
+/* ---------- Sign in → Nucleus transition ---------- */
+function signIn() {
+  if (state.signedIn) return;
+  state.signedIn = true;
 
-/* Init */
+  // Unlock iOS audio on the gesture
+  try {
+    const warm = new SpeechSynthesisUtterance("");
+    warm.volume = 0;
+    speechSynthesis.speak(warm);
+  } catch (_) {}
+
+  // Reveal nucleus
+  el.entry.classList.add("hidden");
+  el.nucleus.classList.add("revealed");
+
+  // Speak "ready to reflect" shortly after the transition lands
+  setTimeout(() => {
+    if (state.voice || pickVoice()) {
+      const u = new SpeechSynthesisUtterance("ready to reflect");
+      u.rate = 0.84;
+      u.pitch = 0.95;
+      if (state.voice) u.voice = state.voice;
+      speechSynthesis.speak(u);
+    }
+  }, 900);
+}
+el.entrySignin.addEventListener("click", signIn);
+
+/* ---------- Bootstrap ---------- */
 if (speechSynthesis.getVoices().length === 0) {
   speechSynthesis.onvoiceschanged = warmVoices;
+} else {
+  warmVoices();
 }
 ensureSession();
-bootstrap();
 </script>
 </body>
 </html>
