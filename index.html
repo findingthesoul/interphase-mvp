@@ -178,7 +178,13 @@
     padding: 18px 0 10px;
   }
 
-  /* ---- Orb (button) ---- */
+  /* ---- Orb (button) ----
+     Three states, all mutually exclusive:
+       (no class) IDLE     — perfectly still, faint halo
+       .listening          — dot scale driven LIVE by --mic-level (real audio analyser)
+       .speaking           — outward radiating rings while Interphase voices a reply
+     Default --mic-level is 1.0 so idle stays exactly the same regardless of class.
+  */
   .orb {
     position: relative;
     width: 84px; height: 84px;
@@ -187,8 +193,10 @@
     border: none;
     padding: 0;
     touch-action: none;
+    --mic-level: 1;
   }
   body.chat-open .orb { width: 62px; height: 62px; transition: width 0.5s ease, height 0.5s ease; }
+
   .orb .dot {
     position: absolute;
     inset: 0;
@@ -196,7 +204,8 @@
     background: var(--klein);
     z-index: 3;
     box-shadow: 0 8px 28px rgba(0,47,167,0.28);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: scale(1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   .orb .ring {
     position: absolute;
@@ -208,27 +217,43 @@
     z-index: 1;
     pointer-events: none;
   }
+
+  /* Idle halo — STILL by default; driven by mic level only when listening. */
   .orb .ring-idle {
     position: absolute;
-    inset: -16px;
+    inset: -10px;
     border-radius: 50%;
     background: var(--klein-soft-10);
     z-index: 0;
-    animation: idle-breathe 4.8s ease-in-out infinite;
+    opacity: 0.42;
+    transform: scale(1);
     pointer-events: none;
+    transition: opacity 0.4s ease, inset 0.4s ease, transform 0.3s ease;
   }
 
-  /* Speaking state (AI talking): outward radiating pulses */
+  /* SPEAKING — outward radiating pulses */
   .orb.speaking .dot { animation: dot-breathe 2.4s ease-in-out infinite; }
   .orb.speaking .ring { animation: ring-out 3.2s ease-out infinite; }
   .orb.speaking .ring:nth-child(2) { animation-delay: 0s; }
   .orb.speaking .ring:nth-child(3) { animation-delay: 1.07s; }
   .orb.speaking .ring:nth-child(4) { animation-delay: 2.14s; }
+  .orb.speaking .ring-idle { opacity: 0.6; }
 
-  /* Listening state (user holding): solid, faster breathing, tighter halo */
+  /* LISTENING — live, voice-reactive. The dot scale is fed by the mic analyser
+     (no animation override); the halo expands proportionally and glows. */
   .orb.listening .dot {
-    animation: listen-pulse 0.9s ease-in-out infinite;
-    box-shadow: 0 0 0 8px var(--klein-soft-16), 0 8px 28px rgba(0,47,167,0.35);
+    transform: scale(var(--mic-level));
+    transition: transform 0.06s linear;
+    box-shadow:
+      0 0 0 calc(8px + (var(--mic-level) - 1) * 22px) var(--klein-soft-16),
+      0 0 0 calc(18px + (var(--mic-level) - 1) * 30px) var(--klein-soft-05),
+      0 10px 36px rgba(0,47,167,0.42);
+  }
+  .orb.listening .ring-idle {
+    inset: -20px;
+    opacity: 0.7;
+    transform: scale(calc(1 + (var(--mic-level) - 1) * 0.55));
+    transition: transform 0.06s linear;
   }
 
   @keyframes ring-out {
@@ -239,14 +264,6 @@
   @keyframes dot-breathe {
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.06); }
-  }
-  @keyframes listen-pulse {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.08); }
-  }
-  @keyframes idle-breathe {
-    0%, 100% { opacity: 0.38; transform: scale(1); }
-    50%      { opacity: 0.62; transform: scale(1.12); }
   }
 
   /* ---- Chat handle (closed state, bottom) ---- */
@@ -943,6 +960,80 @@ function updateSendEnabled() {
   el.sendBtn.disabled = !el.textInput.value.trim() || state.streaming;
 }
 
+/* ============================================================
+   LIVE MIC VISUALISATION
+   - Opens its own getUserMedia stream alongside SpeechRecognition
+   - Real-time RMS volume drives --mic-level on the orb (0.06s linear)
+   - Cleans up cleanly on stop or pointer-cancel
+   ============================================================ */
+let micStream = null;
+let micCtx = null;
+let micAnalyser = null;
+let micRafId = null;
+let micSmoothLevel = 1;
+
+async function startMicViz() {
+  if (micStream) return; // already running
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+  } catch (err) {
+    console.warn("[interphase] mic visualisation unavailable:", err && err.name);
+    micStream = null;
+    return;
+  }
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    micCtx = new Ctx();
+    if (micCtx.state === "suspended") { await micCtx.resume().catch(() => {}); }
+    const source = micCtx.createMediaStreamSource(micStream);
+    micAnalyser = micCtx.createAnalyser();
+    micAnalyser.fftSize = 512;
+    micAnalyser.smoothingTimeConstant = 0.55;
+    source.connect(micAnalyser);
+
+    const data = new Uint8Array(micAnalyser.fftSize);
+    const tick = () => {
+      if (!micAnalyser) return;
+      micAnalyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = (data[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / data.length); // 0..~0.5 typical speech
+      // Map RMS to a scale factor (1.00 idle silence -> 1.55 loud speech).
+      const target = 1 + Math.min(0.55, rms * 3.6);
+      // Asymmetric smoothing: snap up fast, decay slowly.
+      const k = target > micSmoothLevel ? 0.55 : 0.18;
+      micSmoothLevel = micSmoothLevel + (target - micSmoothLevel) * k;
+      el.orb.style.setProperty("--mic-level", micSmoothLevel.toFixed(3));
+      micRafId = requestAnimationFrame(tick);
+    };
+    tick();
+  } catch (err) {
+    console.warn("[interphase] mic analyser setup failed:", err);
+    stopMicViz();
+  }
+}
+
+function stopMicViz() {
+  if (micRafId) { cancelAnimationFrame(micRafId); micRafId = null; }
+  if (micStream) {
+    try { micStream.getTracks().forEach((t) => t.stop()); } catch (_) {}
+    micStream = null;
+  }
+  if (micCtx) {
+    try { micCtx.close(); } catch (_) {}
+    micCtx = null;
+  }
+  micAnalyser = null;
+  micSmoothLevel = 1;
+  // Reset the var so the dot snaps back to perfectly still.
+  el.orb.style.setProperty("--mic-level", 1);
+}
+
 /* ---- Speech recognition on the orb ---- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
@@ -975,6 +1066,7 @@ function setupRecognition() {
   r.onend = () => {
     if (recognizing) {
       recognizing = false;
+      stopMicViz();
       orbState(null);
       const finalText = recognizedText.trim();
       recognizedText = "";
@@ -995,11 +1087,17 @@ function startRecognition() {
     recognition.start();
     recognizing = true;
     orbState("listening");
+    // Light haptic on start (mostly Android; iOS Safari ignores it silently)
+    if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+    // Live audio analyser drives the orb scale in real time
+    startMicViz();
   } catch (err) { console.error(err); }
 }
 function stopRecognition(andSubmit = true) {
   if (!recognition || !recognizing) return;
   try { recognition.stop(); } catch (_) {}
+  stopMicViz();
+  if (navigator.vibrate) { try { navigator.vibrate(4); } catch (_) {} }
   if (!andSubmit) {
     recognizing = false;
     orbState(null);
