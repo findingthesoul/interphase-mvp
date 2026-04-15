@@ -180,10 +180,11 @@
 
   /* ---- Orb (button) ----
      Three states, all mutually exclusive:
-       (no class) IDLE     — perfectly still, faint halo
-       .listening          — dot scale driven LIVE by --mic-level (real audio analyser)
-       .speaking           — outward radiating rings while Interphase voices a reply
-     Default --mic-level is 1.0 so idle stays exactly the same regardless of class.
+       (no class)  IDLE     — fixed dot, faint halo, absolutely still
+       .listening           — dot + expanding KLEIN BLUE circles (stone in water)
+       .speaking            — dot + expanding GREY circles (same rhythm, different colour)
+     The orb uses --orb-color / --orb-soft vars so changing the state
+     recolours the dot, rings, and halo together in one transition.
   */
   .orb {
     position: relative;
@@ -193,77 +194,66 @@
     border: none;
     padding: 0;
     touch-action: none;
-    --mic-level: 1;
+    --orb-color: var(--klein);
+    --orb-soft: var(--klein-soft-10);
+    --orb-shadow: rgba(0,47,167,0.28);
   }
   body.chat-open .orb { width: 62px; height: 62px; transition: width 0.5s ease, height 0.5s ease; }
+
+  /* IP speaking uses a warm mid-grey — clearly distinct from Klein. */
+  .orb.speaking {
+    --orb-color: #6B6963;
+    --orb-soft: rgba(107,105,99,0.14);
+    --orb-shadow: rgba(60,58,52,0.28);
+  }
 
   .orb .dot {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: var(--klein);
+    background: var(--orb-color);
     z-index: 3;
-    box-shadow: 0 8px 28px rgba(0,47,167,0.28);
-    transform: scale(1);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 8px 28px var(--orb-shadow);
+    transition: background 0.45s ease, box-shadow 0.45s ease;
   }
   .orb .ring {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: var(--klein);
+    background: var(--orb-color);
     opacity: 0;
     transform-origin: center;
     z-index: 1;
     pointer-events: none;
+    transition: background 0.45s ease;
   }
-
-  /* Idle halo — STILL by default; driven by mic level only when listening. */
   .orb .ring-idle {
     position: absolute;
     inset: -10px;
     border-radius: 50%;
-    background: var(--klein-soft-10);
+    background: var(--orb-soft);
     z-index: 0;
-    opacity: 0.42;
-    transform: scale(1);
+    opacity: 0.45;
     pointer-events: none;
-    transition: opacity 0.4s ease, inset 0.4s ease, transform 0.3s ease;
+    transition: background 0.45s ease, opacity 0.4s ease;
   }
 
-  /* SPEAKING — outward radiating pulses */
-  .orb.speaking .dot { animation: dot-breathe 2.4s ease-in-out infinite; }
-  .orb.speaking .ring { animation: ring-out 3.2s ease-out infinite; }
+  /* LISTENING — stone-in-water Klein ripples */
+  .orb.listening .ring { animation: ring-out 2.4s ease-out infinite; }
+  .orb.listening .ring:nth-child(2) { animation-delay: 0s; }
+  .orb.listening .ring:nth-child(3) { animation-delay: 0.80s; }
+  .orb.listening .ring:nth-child(4) { animation-delay: 1.60s; }
+
+  /* SPEAKING — stone-in-water grey ripples (slightly slower, wider cadence) */
+  .orb.speaking .ring { animation: ring-out 2.9s ease-out infinite; }
   .orb.speaking .ring:nth-child(2) { animation-delay: 0s; }
-  .orb.speaking .ring:nth-child(3) { animation-delay: 1.07s; }
-  .orb.speaking .ring:nth-child(4) { animation-delay: 2.14s; }
-  .orb.speaking .ring-idle { opacity: 0.6; }
-
-  /* LISTENING — live, voice-reactive. The dot scale is fed by the mic analyser
-     (no animation override); the halo expands proportionally and glows. */
-  .orb.listening .dot {
-    transform: scale(var(--mic-level));
-    transition: transform 0.06s linear;
-    box-shadow:
-      0 0 0 calc(8px + (var(--mic-level) - 1) * 22px) var(--klein-soft-16),
-      0 0 0 calc(18px + (var(--mic-level) - 1) * 30px) var(--klein-soft-05),
-      0 10px 36px rgba(0,47,167,0.42);
-  }
-  .orb.listening .ring-idle {
-    inset: -20px;
-    opacity: 0.7;
-    transform: scale(calc(1 + (var(--mic-level) - 1) * 0.55));
-    transition: transform 0.06s linear;
-  }
+  .orb.speaking .ring:nth-child(3) { animation-delay: 0.96s; }
+  .orb.speaking .ring:nth-child(4) { animation-delay: 1.93s; }
 
   @keyframes ring-out {
-    0%   { opacity: 0.22; transform: scale(1); }
-    70%  { opacity: 0.05; }
-    100% { opacity: 0; transform: scale(3.2); }
-  }
-  @keyframes dot-breathe {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.06); }
+    0%   { opacity: 0.34; transform: scale(1); }
+    65%  { opacity: 0.08; }
+    100% { opacity: 0;    transform: scale(3.4); }
   }
 
   /* ---- Chat handle (closed state, bottom) ---- */
@@ -363,6 +353,25 @@
     animation: blink 0.9s steps(2, start) infinite;
   }
   @keyframes blink { to { visibility: hidden; } }
+
+  .repeat-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    width: 28px; height: 28px;
+    vertical-align: middle;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--klein);
+    opacity: 0.45;
+    padding: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .repeat-btn:hover  { opacity: 1; background: var(--klein-soft-05); border-color: var(--klein-soft-16); }
+  .repeat-btn:active { transform: rotate(-60deg) scale(0.94); opacity: 1; }
 
   /* ---- Text input ---- */
   footer.input-bar {
@@ -588,8 +597,14 @@ const state = {
   voice: null,
   firstSentenceSpoken: false,
   spokenUpTo: 0,
-  ttsAvailable: true, // flipped to false on first failure, falls back to browser voice
+  ttsAvailable: true,       // flipped to false on first failure, falls back to browser voice
+  conversationActive: false,// set true after REFLECT — enables continuous listening loop
+  lastAssistantText: null,  // last AI reply, for repeat button
 };
+
+/* Turn-taking config */
+const SILENCE_TIMEOUT_MS = 5000;                              // 5s of silence ends turn
+const TRIGGER_WORDS = ["over", "done", "finished", "go ahead"]; // end-of-phrase triggers
 
 const el = {
   entry:          document.getElementById("entry"),
@@ -789,9 +804,20 @@ async function processAudioQueue() {
     }
   } finally {
     audioPlaying = false;
-    // Only drop the speaking state if no new items arrived while playing
-    if (audioQueue.length === 0) orbState(null);
-    else processAudioQueue();
+    if (audioQueue.length === 0) {
+      orbState(null);
+      // The conversational loop: after Interphase finishes speaking,
+      // automatically resume listening so the user can speak again.
+      if (state.conversationActive && !state.streaming && !recognizing) {
+        setTimeout(() => {
+          if (state.conversationActive && !state.streaming && !recognizing && !audioPlaying) {
+            startRecognition();
+          }
+        }, 350);
+      }
+    } else {
+      processAudioQueue();
+    }
   }
 }
 
@@ -812,6 +838,51 @@ function stopAllSpeech() {
   }
   audioPlaying = false;
   orbState(null);
+}
+
+/* ---- Replay helpers ---- */
+function attachRepeatButton(aiDiv, text) {
+  if (!aiDiv || !text) return;
+  // Don't double-attach
+  if (aiDiv.querySelector(".repeat-btn")) return;
+  const btn = document.createElement("button");
+  btn.className = "repeat-btn";
+  btn.type = "button";
+  btn.setAttribute("aria-label", "repeat this question");
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="1 4 1 10 7 10"/>' +
+      '<path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>' +
+    '</svg>';
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    replayText(text);
+  });
+  aiDiv.appendChild(btn);
+}
+
+function replayText(text) {
+  if (!text || state.streaming) return;
+  // Pause conversational loop briefly while replaying,
+  // so we don't trigger a listening restart mid-playback.
+  const wasActive = state.conversationActive;
+  state.conversationActive = false;
+  stopAllSpeech();
+  if (recognizing) { try { recognition.stop(); } catch (_) {} }
+
+  const sentences = text.match(/[^.!?…]+[.!?…]+/g) || [text];
+  sentences.forEach((raw, i) => {
+    const s = raw.trim();
+    if (!s) return;
+    if (i === 0) setTimeout(() => speakSentence(s), 250);
+    else         speakSentence(s);
+  });
+
+  // Restore conversational mode so listening resumes after the replay drains.
+  // Small delay lets the first speakSentence land in the queue before
+  // processAudioQueue checks the flag.
+  setTimeout(() => { state.conversationActive = wasActive; }, 120);
 }
 
 /* ---------- Sentence detection (unchanged rhythm) ---------- */
@@ -850,6 +921,9 @@ function checkForSentences(fullText, { force = false } = {}) {
    ============================================================ */
 async function askInterphase(userText) {
   state.messages.push({ role: "user", content: userText });
+  // Stop any lingering listening / in-progress speech before we stream
+  if (recognizing) { try { recognition.stop(); } catch(_) {} recognizing = false; }
+  clearSilenceTimer();
   stopAllSpeech();
 
   let aiDiv = null;
@@ -917,6 +991,8 @@ async function askInterphase(userText) {
     if (fullText.trim()) {
       const assistantText = fullText.trim();
       state.messages.push({ role: "assistant", content: assistantText });
+      state.lastAssistantText = assistantText;
+      if (aiDiv) attachRepeatButton(aiDiv, assistantText);
       // Fire-and-forget log to Supabase
       fetch(API_LOG, {
         method: "POST",
@@ -961,80 +1037,46 @@ function updateSendEnabled() {
 }
 
 /* ============================================================
-   LIVE MIC VISUALISATION
-   - Opens its own getUserMedia stream alongside SpeechRecognition
-   - Real-time RMS volume drives --mic-level on the orb (0.06s linear)
-   - Cleans up cleanly on stop or pointer-cancel
+   CONVERSATIONAL TURN-TAKING
+   - Continuous SpeechRecognition after REFLECT
+   - Turn ends on 5s silence OR a trigger word ("over" / "done" / ...)
+   - Recognition paused during AI speech, auto-resumed when done
    ============================================================ */
-let micStream = null;
-let micCtx = null;
-let micAnalyser = null;
-let micRafId = null;
-let micSmoothLevel = 1;
+let silenceTimer = null;
 
-async function startMicViz() {
-  if (micStream) return; // already running
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-    });
-  } catch (err) {
-    console.warn("[interphase] mic visualisation unavailable:", err && err.name);
-    micStream = null;
-    return;
-  }
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    micCtx = new Ctx();
-    if (micCtx.state === "suspended") { await micCtx.resume().catch(() => {}); }
-    const source = micCtx.createMediaStreamSource(micStream);
-    micAnalyser = micCtx.createAnalyser();
-    micAnalyser.fftSize = 512;
-    micAnalyser.smoothingTimeConstant = 0.55;
-    source.connect(micAnalyser);
-
-    const data = new Uint8Array(micAnalyser.fftSize);
-    const tick = () => {
-      if (!micAnalyser) return;
-      micAnalyser.getByteTimeDomainData(data);
-      let sum = 0;
-      for (let i = 0; i < data.length; i++) {
-        const v = (data[i] - 128) / 128;
-        sum += v * v;
-      }
-      const rms = Math.sqrt(sum / data.length); // 0..~0.5 typical speech
-      // Map RMS to a scale factor (1.00 idle silence -> 1.55 loud speech).
-      const target = 1 + Math.min(0.55, rms * 3.6);
-      // Asymmetric smoothing: snap up fast, decay slowly.
-      const k = target > micSmoothLevel ? 0.55 : 0.18;
-      micSmoothLevel = micSmoothLevel + (target - micSmoothLevel) * k;
-      el.orb.style.setProperty("--mic-level", micSmoothLevel.toFixed(3));
-      micRafId = requestAnimationFrame(tick);
-    };
-    tick();
-  } catch (err) {
-    console.warn("[interphase] mic analyser setup failed:", err);
-    stopMicViz();
-  }
+function clearSilenceTimer() {
+  if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+}
+function armSilenceTimer() {
+  clearSilenceTimer();
+  if (!recognizing) return;
+  silenceTimer = setTimeout(() => {
+    if (recognizing && recognizedText.trim()) {
+      // End of turn by silence
+      try { recognition.stop(); } catch (_) {}
+    }
+  }, SILENCE_TIMEOUT_MS);
 }
 
-function stopMicViz() {
-  if (micRafId) { cancelAnimationFrame(micRafId); micRafId = null; }
-  if (micStream) {
-    try { micStream.getTracks().forEach((t) => t.stop()); } catch (_) {}
-    micStream = null;
+/* Strip a trailing trigger word from a transcript.
+   Returns the cleaned text, or null if no trigger was found. */
+function stripTriggerWord(raw) {
+  const text = (raw || "").trim();
+  if (!text) return null;
+  for (const word of TRIGGER_WORDS) {
+    // Match at end of text: "..... over" / "..... over." / "..... over!"
+    const re = new RegExp("(.*?)\\b" + word.replace(/\s+/g, "\\s+") + "\\b[\\s.!?…,]*$", "i");
+    const m = text.match(re);
+    if (m) {
+      const cleaned = m[1].replace(/[\s,.:;—-]+$/, "").trim();
+      // Require at least some content before the trigger
+      if (cleaned.length >= 2) return cleaned;
+    }
   }
-  if (micCtx) {
-    try { micCtx.close(); } catch (_) {}
-    micCtx = null;
-  }
-  micAnalyser = null;
-  micSmoothLevel = 1;
-  // Reset the var so the dot snaps back to perfectly still.
-  el.orb.style.setProperty("--mic-level", 1);
+  return null;
 }
 
-/* ---- Speech recognition on the orb ---- */
+/* ---- Speech recognition ---- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let recognizing = false;
@@ -1053,51 +1095,86 @@ function setupRecognition() {
       if (e.results[i].isFinal) finalTxt += t; else interim += t;
     }
     recognizedText = (recognizedText + finalTxt).trim();
-    // preview interim into the text input so the user sees it building
-    el.textInput.value = (recognizedText + " " + interim).trim();
+    const preview = (recognizedText + " " + interim).trim();
+    el.textInput.value = preview;
     updateSendEnabled();
+
+    // Trigger-word check on the full transcript (including interim so
+    // it fires the instant the word is recognised)
+    if (preview) {
+      const cleaned = stripTriggerWord(preview);
+      if (cleaned !== null) {
+        recognizedText = cleaned;
+        clearSilenceTimer();
+        try { recognition.stop(); } catch (_) {}
+        return;
+      }
+    }
+    // Otherwise, reset the silence clock on any new speech
+    if (finalTxt || interim) armSilenceTimer();
   };
   r.onerror = (e) => {
     if (e.error === "not-allowed" || e.error === "service-not-allowed") {
       toast("microphone permission needed");
+      state.conversationActive = false;
     }
+    // "no-speech" / "aborted" are fine — onend will decide whether to restart
     stopRecognition(false);
   };
   r.onend = () => {
-    if (recognizing) {
-      recognizing = false;
-      stopMicViz();
-      orbState(null);
-      const finalText = recognizedText.trim();
-      recognizedText = "";
-      el.textInput.value = "";
-      if (finalText) submit(finalText);
+    const wasRecognizing = recognizing;
+    recognizing = false;
+    clearSilenceTimer();
+    const finalText = recognizedText.trim();
+    recognizedText = "";
+    el.textInput.value = "";
+
+    if (!wasRecognizing) return;
+    orbState(null);
+
+    if (finalText) {
+      // Captured a turn — submit it
+      submit(finalText);
+    } else if (
+      state.conversationActive &&
+      state.signedIn &&
+      !state.streaming &&
+      !audioPlaying
+    ) {
+      // Browser auto-ended (idle timeout) without capturing anything — restart listening
+      setTimeout(() => {
+        if (state.conversationActive && !state.streaming && !audioPlaying) {
+          startRecognition();
+        }
+      }, 180);
     }
   };
   return r;
 }
+
 function startRecognition() {
   if (!recognition) recognition = setupRecognition();
   if (!recognition) { toast("speech input unavailable — type instead"); return; }
-  if (recognizing || state.streaming) return;
+  if (recognizing || state.streaming || audioPlaying) return;
   try {
-    stopAllSpeech();
     recognizedText = "";
     el.textInput.value = "";
     recognition.start();
     recognizing = true;
     orbState("listening");
-    // Light haptic on start (mostly Android; iOS Safari ignores it silently)
-    if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
-    // Live audio analyser drives the orb scale in real time
-    startMicViz();
-  } catch (err) { console.error(err); }
+    if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+  } catch (err) {
+    console.error(err);
+  }
 }
+
 function stopRecognition(andSubmit = true) {
-  if (!recognition || !recognizing) return;
+  if (!recognition || !recognizing) {
+    clearSilenceTimer();
+    return;
+  }
+  clearSilenceTimer();
   try { recognition.stop(); } catch (_) {}
-  stopMicViz();
-  if (navigator.vibrate) { try { navigator.vibrate(4); } catch (_) {} }
   if (!andSubmit) {
     recognizing = false;
     orbState(null);
@@ -1106,11 +1183,21 @@ function stopRecognition(andSubmit = true) {
   }
 }
 
-/* Orb push-to-talk bindings */
-el.orb.addEventListener("pointerdown", (e) => { e.preventDefault(); startRecognition(); });
-el.orb.addEventListener("pointerup",   (e) => { e.preventDefault(); stopRecognition(true); });
-el.orb.addEventListener("pointerleave", () => { if (recognizing) stopRecognition(true); });
-el.orb.addEventListener("pointercancel",() => { if (recognizing) stopRecognition(false); });
+/* Orb tap — end turn early (if listening and has content),
+   or force-submit whatever's been said so far. No press-and-hold. */
+el.orb.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (state.streaming) return;
+  if (recognizing && recognizedText.trim()) {
+    clearSilenceTimer();
+    try { recognition.stop(); } catch (_) {}
+  } else if (recognizing && !recognizedText.trim()) {
+    // Tapped early — do nothing, keep listening
+  } else if (audioPlaying) {
+    // Interrupt Interphase's speech (useful for long replies)
+    stopAllSpeech();
+  }
+});
 
 /* ============================================================
    SETTINGS
@@ -1125,15 +1212,24 @@ el.settingsOverlay.addEventListener("click", (e) => {
 el.settingsReset.addEventListener("click", () => {
   if (state.streaming) return;
   stopAllSpeech();
+  if (recognizing) { try { recognition.stop(); } catch(_) {} }
+  clearSilenceTimer();
   state.messages = [];
+  state.lastAssistantText = null;
   el.conversation.innerHTML = "";
   closeSettings();
   closeChat();
+  // Keep conversationActive — re-speak "ready to reflect" and resume listening
+  setTimeout(() => { speakSentence("ready to reflect."); }, 250);
 });
 el.settingsSignout.addEventListener("click", () => {
   if (state.streaming) return;
+  state.conversationActive = false;
   stopAllSpeech();
+  if (recognizing) { try { recognition.stop(); } catch(_) {} }
+  clearSilenceTimer();
   state.messages = [];
+  state.lastAssistantText = null;
   el.conversation.innerHTML = "";
   closeSettings();
   closeChat();
@@ -1148,6 +1244,7 @@ el.settingsSignout.addEventListener("click", () => {
 function reflect() {
   if (state.signedIn) return;
   state.signedIn = true;
+  state.conversationActive = true;
 
   // Unlock audio on this user gesture (both HTMLAudio + SpeechSynthesis)
   unlockAudio();
@@ -1156,7 +1253,9 @@ function reflect() {
   el.entry.classList.add("hidden");
   el.nucleus.classList.add("revealed");
 
-  // Speak "ready to reflect" once the transition lands
+  // Speak "ready to reflect" once the transition lands.
+  // When the audio queue drains, processAudioQueue() will auto-start
+  // listening because state.conversationActive is now true.
   setTimeout(() => { speakSentence("ready to reflect."); }, 900);
 }
 el.entryReflect.addEventListener("click", reflect);
