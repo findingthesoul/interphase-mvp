@@ -1,0 +1,19 @@
+{
+  "name": "Interphase",
+  "short_name": "Interphase",
+  "description": "change begins before it shows",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "https://findingthesoul.github.io/interphase/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

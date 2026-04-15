@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#F6F6F7" />
 <title>Interphase</title>
 <link rel="icon" type="image/svg+xml" href="https://findingthesoul.github.io/interphase/favicon.svg" />
+<link rel="apple-touch-icon" href="https://findingthesoul.github.io/interphase/favicon.svg" />
+<link rel="manifest" href="/manifest.webmanifest" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -189,22 +191,23 @@
   .orb {
     position: relative;
     width: 84px; height: 84px;
-    cursor: pointer;
     background: none;
     border: none;
     padding: 0;
-    touch-action: none;
+    pointer-events: none; /* ambient status light, not a button */
     --orb-color: var(--klein);
     --orb-soft: var(--klein-soft-10);
     --orb-shadow: rgba(0,47,167,0.28);
   }
+  /* While IP is speaking, let the user tap the orb to interrupt. */
+  .orb.speaking { pointer-events: auto; cursor: pointer; }
   body.chat-open .orb { width: 62px; height: 62px; transition: width 0.5s ease, height 0.5s ease; }
 
   /* IP speaking uses a warm mid-grey — clearly distinct from Klein. */
   .orb.speaking {
-    --orb-color: #6B6963;
-    --orb-soft: rgba(107,105,99,0.14);
-    --orb-shadow: rgba(60,58,52,0.28);
+    --orb-color: #FFDD00;
+    --orb-soft: rgba(255,221,0,0.18);
+    --orb-shadow: rgba(255,221,0,0.38);
   }
 
   .orb .dot {
@@ -538,13 +541,13 @@
     </header>
 
     <div class="orb-wrap">
-      <button class="orb" id="orb" aria-label="hold to speak">
+      <div class="orb" id="orb" role="status" aria-live="polite" aria-label="interphase status">
         <div class="ring-idle"></div>
         <div class="ring"></div>
         <div class="ring"></div>
         <div class="ring"></div>
         <div class="dot"></div>
-      </button>
+      </div>
     </div>
 
     <button class="handle-closed" id="handle-closed" aria-label="open conversation">∧</button>
@@ -1183,20 +1186,11 @@ function stopRecognition(andSubmit = true) {
   }
 }
 
-/* Orb tap — end turn early (if listening and has content),
-   or force-submit whatever's been said so far. No press-and-hold. */
+/* Orb is an ambient status light, not a button.
+   The only affordance: while IP is speaking, tap to interrupt. */
 el.orb.addEventListener("click", (e) => {
   e.preventDefault();
-  if (state.streaming) return;
-  if (recognizing && recognizedText.trim()) {
-    clearSilenceTimer();
-    try { recognition.stop(); } catch (_) {}
-  } else if (recognizing && !recognizedText.trim()) {
-    // Tapped early — do nothing, keep listening
-  } else if (audioPlaying) {
-    // Interrupt Interphase's speech (useful for long replies)
-    stopAllSpeech();
-  }
+  if (audioPlaying) stopAllSpeech();
 });
 
 /* ============================================================
